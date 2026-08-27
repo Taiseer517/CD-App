@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@import "@fontsource/cinzel/400.css";
+@import "@fontsource/cinzel/600.css";
+@import "@fontsource/eb-garamond/400.css";
+@import "@fontsource/eb-garamond/500.css";
+@import "@fontsource/eb-garamond/400-italic.css";
+@import "@fontsource/unifrakturmaguntia/400.css";
+
+@theme {
+  /* Backgrounds — near-black, never pure black or pure white */
+  --color-void-950: #08060a;
+  --color-void-900: #0e0b12;
+  --color-void-800: #17121c;
+  --color-void-700: #221b2b;
+
+  /* Primary accent — dried blood / wine */
+  --color-blood-900: #3d0712;
+  --color-blood-700: #6b0f21;
+  --color-blood-500: #9c1c2e;
+  --color-blood-400: #c22f3f;
+  --color-blood-300: #e35263;
+
+  /* Secondary accent — candlelit velvet */
+  --color-velvet-900: #1f1130;
+  --color-velvet-700: #3a1d5c;
+  --color-velvet-500: #5b2f8a;
+  --color-velvet-400: #7c4fb0;
+  --color-velvet-300: #a37bd1;
+
+  /* Body text — warm parchment, never stark white */
+  --color-bone-400: #b8ad9c;
+  --color-bone-200: #e4dbcb;
+  --color-bone-100: #f3ede4;
+
+  --font-display: "Cinzel", "Times New Roman", serif;
+  --font-body: "EB Garamond", Georgia, serif;
+  --font-blackletter: "UnifrakturMaguntia", var(--font-display);
+}
+
+body {
+  background-color: var(--color-void-950);
+  color: var(--color-bone-200);
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+}
