@@ -125,6 +125,7 @@ export function ShelfPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            <div className="w-56"><SearchBox /></div>
             <button
               type="button"
               onClick={handleTidy}
@@ -144,8 +145,6 @@ export function ShelfPage() {
           </div>
         </div>
 
-        <SearchBox />
-
         {onShelf.length === 0 ? (
           <EmptyState
             title="Nothing on this shelf yet"
@@ -156,7 +155,7 @@ export function ShelfPage() {
             }
           />
         ) : (
-          <div className="relative overflow-hidden rounded-xl border border-void-700 bg-void-950">
+          <div className="relative">
             <ShelfCase
               items={shown}
               theme={theme}

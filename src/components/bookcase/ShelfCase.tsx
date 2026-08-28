@@ -3,6 +3,7 @@ import { safeImageUrl } from '../../data/safeUrl'
 import type { CollectionItem } from '../../data/schema'
 import type { ShelfTheme } from '../../scenes/themes'
 import { frameGeometry, GothicFrame } from './GothicFrame'
+import { Candle, Cobweb, DustMotes, Spider, WaxDrip } from './Ornaments'
 
 /**
  * A shelf of records, drawn as furniture rather than modelled as geometry.
@@ -23,7 +24,7 @@ const SPINES_PER_ROW = 28
  * that hold something left one shelf marooned under a great empty arch, which
  * reads as a broken layout rather than as room to grow.
  */
-const MIN_ROWS = 4
+const MIN_ROWS = 3
 
 interface ShelfCaseProps {
   items: CollectionItem[]
@@ -134,15 +135,25 @@ export function ShelfCase({ items, theme, selectedId, onSelect }: ShelfCaseProps
 
   // Only the shelf area varies; the ornament above and the plinth below are
   // fixed, so the case keeps its proportions whatever it holds.
-  const rowHeight = spineMode ? 168 : 214
+  const rowHeight = spineMode ? 148 : 190
   const openingHeight = rows.length * rowHeight
   const geometry = frameGeometry(openingHeight)
   const frameHeight = geometry.height
 
   return (
+    // The whole case has to be visible at once: a bookcase you have to scroll
+    // to see is not a bookcase, it is a list. The width is whichever is
+    // smaller — the space available, or what fits the height budget — and the
+    // aspect ratio gives the height from there. Setting width to 100% and
+    // capping the height instead broke the ratio, and the drawn frame
+    // letterboxed away from the shelves laid over it.
     <div
-      className="relative w-full"
-      style={{ aspectRatio: `1000 / ${frameHeight}`, perspective: '900px' }}
+      className="relative mx-auto"
+      style={{
+        width: `min(100%, calc(min(62vh, 760px) * 1000 / ${frameHeight}))`,
+        aspectRatio: `1000 / ${frameHeight}`,
+        perspective: '1100px',
+      }}
     >
       <GothicFrame
         wood={theme.wood}
@@ -164,7 +175,13 @@ export function ShelfCase({ items, theme, selectedId, onSelect }: ShelfCaseProps
           bottom: `${((frameHeight - geometry.floor + 16) / frameHeight) * 100}%`,
         }}
       >
-        {[...rows].reverse().map((row, index) => (
+        {rows.map((row, index) => {
+          // A candle stands on a shelf with room to spare, at alternating
+          // ends so the case is lit unevenly the way a real room is.
+          const spare = row.length === 0 || (!spineMode && row.length < FACE_OUT_LIMIT)
+          const candleSide = index % 2 === 0 ? 'right' : 'left'
+
+          return (
           <div key={index} className="relative flex-1">
             {/* What the records stand on */}
             <div
@@ -181,6 +198,21 @@ export function ShelfCase({ items, theme, selectedId, onSelect }: ShelfCaseProps
                 background: `radial-gradient(ellipse 62% 100% at 76% 100%, ${theme.candleColor}22, transparent 70%)`,
               }}
             />
+
+            {theme.candles && spare && (
+              <>
+                <Candle
+                  height={26}
+                  color={theme.candleColor}
+                  className={`absolute bottom-[7px] ${candleSide === 'right' ? 'right-[3%]' : 'left-[3%]'}`}
+                />
+                <WaxDrip
+                  left={candleSide === 'right' ? '94%' : '5%'}
+                  length={9 + (index % 3) * 5}
+                  color="#cabfa6"
+                />
+              </>
+            )}
 
             <div
               className={`absolute inset-x-0 bottom-[7px] flex h-[86%] items-end overflow-hidden ${
@@ -207,7 +239,38 @@ export function ShelfCase({ items, theme, selectedId, onSelect }: ShelfCaseProps
               )}
             </div>
           </div>
-        ))}
+          )
+        })}
+      </div>
+
+      {/* Webs gather in the corners of the opening, and something lives in
+          the left one. Both are the room's business, not the records'. */}
+      {theme.cobwebs && (
+        <div
+          className="pointer-events-none absolute"
+          style={{
+            left: '12%',
+            right: '12%',
+            top: `${((geometry.openingTop - 40) / frameHeight) * 100}%`,
+            bottom: `${((frameHeight - geometry.floor) / frameHeight) * 100}%`,
+          }}
+        >
+          <Cobweb corner="tl" size={110} opacity={0.26} />
+          <Cobweb corner="tr" size={84} opacity={0.18} />
+          <Spider left="16%" drop={30} />
+        </div>
+      )}
+
+      <div
+        className="pointer-events-none absolute"
+        style={{
+          left: '13%',
+          right: '13%',
+          top: `${(geometry.openingTop / frameHeight) * 100}%`,
+          bottom: `${((frameHeight - geometry.floor) / frameHeight) * 100}%`,
+        }}
+      >
+        <DustMotes theme={theme} />
       </div>
     </div>
   )

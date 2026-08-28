@@ -6,7 +6,7 @@
  * set of values, named, so switching one swaps the whole room at once rather
  * than exposing two dozen sliders.
  */
-export type ThemeId = 'cathedral' | 'crypt' | 'ossuary' | 'vigil'
+export type ThemeId = 'cathedral' | 'crypt' | 'ossuary' | 'vigil' | 'reliquary' | 'nocturne'
 
 export interface ShelfTheme {
   id: ThemeId
@@ -133,6 +133,52 @@ export const THEMES: Record<ThemeId, ShelfTheme> = {
     chains: true,
     cobwebs: true,
     swatch: ['#4a3524', '#ffb066'],
+  },
+
+  reliquary: {
+    id: 'reliquary',
+    name: 'Reliquary',
+    description: 'Gilt and rosewood, lit like a treasury.',
+    wood: '#4a2320',
+    woodDark: '#251010',
+    woodLight: '#7a3f34',
+    metal: '#c9a253',
+    keyColor: '#ffdca8',
+    rimColor: '#b5603f',
+    keyIntensity: 80,
+    ambient: 0.92,
+    candleColor: '#ffc26b',
+    fogNear: 20,
+    fogFar: 48,
+    background: '#0b0605',
+    candles: true,
+    roseWindow: true,
+    chains: false,
+    cobwebs: false,
+    swatch: ['#7a3f34', '#c9a253'],
+  },
+
+  nocturne: {
+    id: 'nocturne',
+    name: 'Nocturne',
+    description: 'Ebony and cold silver, under a low moon.',
+    wood: '#22242e',
+    woodDark: '#0e1014',
+    woodLight: '#3c4152',
+    metal: '#8f97ad',
+    keyColor: '#b9c8ee',
+    rimColor: '#6f5cc0',
+    keyIntensity: 54,
+    ambient: 0.68,
+    candleColor: '#cfe0ff',
+    fogNear: 14,
+    fogFar: 34,
+    background: '#05060b',
+    candles: true,
+    roseWindow: true,
+    chains: false,
+    cobwebs: true,
+    swatch: ['#3c4152', '#b9c8ee'],
   },
 }
 

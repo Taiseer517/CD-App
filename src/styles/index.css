@@ -94,3 +94,42 @@ h1, h2, h3, h4 {
   font-family: var(--font-display);
   letter-spacing: 0.02em;
 }
+
+/* --- Ornament motion -------------------------------------------------
+   All of it decorative, all of it stopped by prefers-reduced-motion via
+   Tailwind's motion-safe: variant at the call site. A flame that will not
+   hold still is a problem for some people rather than a flourish. */
+
+@keyframes flame {
+  0%, 100% { transform: translateX(-50%) scaleY(1) skewX(0deg); opacity: 0.92; }
+  25%      { transform: translateX(-50%) scaleY(1.16) skewX(-3deg); opacity: 1; }
+  55%      { transform: translateX(-50%) scaleY(0.9) skewX(2deg); opacity: 0.84; }
+  78%      { transform: translateX(-50%) scaleY(1.08) skewX(-1deg); opacity: 0.97; }
+}
+
+@keyframes candle-glow {
+  0%, 100% { opacity: 0.75; transform: translate(-50%, -50%) scale(1); }
+  40%      { opacity: 1;    transform: translate(-50%, -50%) scale(1.09); }
+  70%      { opacity: 0.68; transform: translate(-50%, -50%) scale(0.96); }
+}
+
+/* The spider hangs still for most of the cycle, then drops and climbs back.
+   Constant motion would be a distraction; a rare movement is a surprise. */
+@keyframes spider-drop {
+  0%, 62%   { transform: translateY(0); }
+  72%       { transform: translateY(26px); }
+  80%       { transform: translateY(30px); }
+  92%, 100% { transform: translateY(0); }
+}
+
+@keyframes mote {
+  0%, 100% { transform: translate3d(0, 0, 0); opacity: 0.1; }
+  30%      { transform: translate3d(6px, -14px, 0); opacity: 0.35; }
+  60%      { transform: translate3d(-4px, -26px, 0); opacity: 0.22; }
+}
+
+/* A case tipping out of the row when the pointer finds it. */
+@keyframes case-tip {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(-52deg) translateZ(12px); }
+}
