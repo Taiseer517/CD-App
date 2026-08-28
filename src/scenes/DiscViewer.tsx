@@ -4,8 +4,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { DoubleSide, MathUtils, type Group } from 'three'
 import type { CollectionItem } from '../data/schema'
-import { useDiscSurface } from './hooks/useDiscSurface'
-import { useLazyTexture } from './hooks/useLazyTexture'
+import { useDiscFace } from './hooks/useDiscFace'
 
 /**
  * The disc itself, held up to the light.
@@ -24,116 +23,60 @@ interface DiscViewerProps {
 const SPIN_SPEED = 2.2
 const FRICTION = 0.985
 
-function CompactDisc({ item, flipped }: { item: CollectionItem; flipped: boolean }) {
-  const label = useLazyTexture(item.discImageUrl || undefined)
-  const surface = useDiscSurface('cd')
+/**
+ * A compact disc, printed edge to edge.
+ *
+ * A scan of the disc itself is used when the Cover Art Archive has one;
+ * otherwise the sleeve is printed across the face, which is what a picture
+ * disc does. Either way the artwork covers the whole surface rather than
+ * sitting as a token circle in the middle.
+ */
+function CompactDisc({ item }: { item: CollectionItem }) {
+  const face = useDiscFace(item.discImageUrl || item.coverImageUrl || undefined, 'cd')
   const R = 1.25
-  const HUB = R * 0.12
-  const LABEL_R = R * 0.46
 
   return (
     <group>
-      {/* The polycarbonate body: clear, and mirrored on the data side. The
-          iridescence is thin-film, so it sweeps as the disc turns rather
-          than being a rainbow painted on. */}
       <mesh>
-        <circleGeometry args={[R, 128]} />
+        <circleGeometry args={[R, 160]} />
         <meshPhysicalMaterial
-          key={surface?.uuid ?? 'no-surface'}
-          map={surface ?? undefined}
+          key={face?.uuid ?? 'no-face'}
+          map={face ?? undefined}
           color="#ffffff"
-          metalness={0.72}
-          roughness={0.14}
-          clearcoat={1}
-          clearcoatRoughness={0.06}
-          iridescence={0.6}
+          transparent
+          metalness={0.4}
+          roughness={0.22}
+          clearcoat={0.85}
+          clearcoatRoughness={0.12}
+          iridescence={0.45}
           iridescenceIOR={1.7}
           iridescenceThicknessRange={[180, 820]}
           side={DoubleSide}
         />
       </mesh>
-
-      {/* The printed label. Only the front is printed on a real CD, so the
-          reverse shows the mirrored underside instead. */}
-      {!flipped && (
-        <mesh position={[0, 0, 0.0026]}>
-          <circleGeometry args={[LABEL_R, 96]} />
-          <meshStandardMaterial
-            key={label?.uuid ?? 'no-label'}
-            map={label ?? undefined}
-            color={label ? '#ffffff' : '#2a2136'}
-            roughness={0.78}
-            side={DoubleSide}
-          />
-        </mesh>
-      )}
-
-      {/* Clear inner ring and the spindle hole */}
-      <mesh position={[0, 0, 0.0028]}>
-        <ringGeometry args={[HUB, HUB * 1.5, 64]} />
-        <meshPhysicalMaterial
-          color="#dfe3ec"
-          transmission={0.85}
-          thickness={0.2}
-          roughness={0.08}
-          side={DoubleSide}
-        />
-      </mesh>
     </group>
   )
 }
 
-function VinylRecord({ item, flipped }: { item: CollectionItem; flipped: boolean }) {
-  const label = useLazyTexture(item.discImageUrl || item.coverImageUrl || undefined)
-  const surface = useDiscSurface('vinyl')
+function VinylRecord({ item }: { item: CollectionItem }) {
+  const face = useDiscFace(item.discImageUrl || item.coverImageUrl || undefined, 'vinyl')
   const R = 1.45
-  const LABEL_R = R * 0.34
 
   return (
     <group>
       <mesh>
-        <circleGeometry args={[R, 128]} />
+        <circleGeometry args={[R, 160]} />
         <meshPhysicalMaterial
-          key={surface?.uuid ?? 'no-surface'}
-          map={surface ?? undefined}
+          key={face?.uuid ?? 'no-face'}
+          map={face ?? undefined}
           color="#ffffff"
-          roughness={0.3}
-          metalness={0.3}
-          clearcoat={0.85}
-          clearcoatRoughness={0.22}
+          transparent
+          roughness={0.44}
+          metalness={0.15}
+          clearcoat={0.45}
+          clearcoatRoughness={0.4}
           side={DoubleSide}
         />
-      </mesh>
-
-      <mesh position={[0, 0, 0.0018]}>
-        <circleGeometry args={[LABEL_R, 96]} />
-        <meshStandardMaterial
-          key={`${label?.uuid ?? 'no-label'}-${flipped}`}
-          map={label ?? undefined}
-          color={label ? '#ffffff' : '#3a1d5c'}
-          roughness={0.86}
-          side={DoubleSide}
-        />
-      </mesh>
-
-      <mesh position={[0, 0, 0.0026]}>
-        <circleGeometry args={[R * 0.026, 24]} />
-        <meshBasicMaterial color="#05050a" />
-      </mesh>
-    </group>
-  )
-}
-
-/** The sleeve, standing behind the disc so its artwork is always present. */
-function Sleeve({ item }: { item: CollectionItem }) {
-  const cover = useLazyTexture(item.coverImageUrl || undefined)
-  if (!cover) return null
-
-  return (
-    <group position={[0, 0, -1.15]}>
-      <mesh>
-        <planeGeometry args={[2.9, 2.9]} />
-        <meshStandardMaterial map={cover} roughness={0.85} transparent opacity={0.4} />
       </mesh>
     </group>
   )
@@ -177,13 +120,8 @@ function Turntable({
 
   return (
     <animated.group rotation-y={spring.flip}>
-      <Sleeve item={item} />
       <group ref={spinRef}>
-        {item.type === 'vinyl' ? (
-          <VinylRecord item={item} flipped={flipped} />
-        ) : (
-          <CompactDisc item={item} flipped={flipped} />
-        )}
+        {item.type === 'vinyl' ? <VinylRecord item={item} /> : <CompactDisc item={item} />}
       </group>
     </animated.group>
   )
@@ -291,13 +229,13 @@ function Stage({
         <Lightformer form="ring" intensity={2.4} color="#ffb37a" position={[0, -5, -3]} scale={7} />
       </Environment>
 
-      <ambientLight intensity={0.5} />
-      {/* Three hard sources: iridescence needs something to catch, and one
-          soft light leaves a CD looking like grey card. */}
-      <pointLight position={[3, 2.4, 4]} intensity={55} color="#ffd9b0" distance={20} decay={1.6} />
-      <pointLight position={[-3.4, -1.4, 3]} intensity={38} color="#a37bd1" distance={18} decay={1.6} />
-      <pointLight position={[0, 3.6, -2]} intensity={26} color="#7fd4e8" distance={16} decay={1.7} />
-      <directionalLight position={[0, 0, 6]} intensity={0.8} color="#ffffff" />
+      <ambientLight intensity={0.85} />
+      {/* All the light is off-axis. A source pointed straight down the camera
+          axis at a glossy disc puts a blown-out white blob dead centre, which
+          is precisely what it did. */}
+      <pointLight position={[4.5, 3.2, 3]} intensity={40} color="#ffd9b0" distance={22} decay={1.7} />
+      <pointLight position={[-4.5, -2.2, 2.6]} intensity={28} color="#a37bd1" distance={20} decay={1.7} />
+      <directionalLight position={[-2, 3, 4]} intensity={0.55} color="#e8eeff" />
 
       <group ref={tiltGroup}>
         <Turntable
