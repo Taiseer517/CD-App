@@ -89,6 +89,7 @@ export function ItemDetailPage() {
                   <img
                     src={safeImageUrl(facing)}
                     alt={`${item.title} ${showBack ? 'back cover' : 'cover art'}`}
+                    crossOrigin="anonymous"
                     className="h-full w-full object-cover"
                   />
                 ) : (
@@ -115,6 +116,7 @@ export function ItemDetailPage() {
                   <img
                     src={safeImageUrl(item.discImageUrl)}
                     alt=""
+                    crossOrigin="anonymous"
                     className="h-12 w-12 rounded-full object-cover"
                   />
                   <span className="text-xs uppercase tracking-wide text-bone-400">

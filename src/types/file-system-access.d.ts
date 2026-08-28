@@ -34,3 +34,14 @@ interface Window {
   showSaveFilePicker?: (options?: SaveFilePickerOptions) => Promise<FileSystemFileHandle>
   showOpenFilePicker?: (options?: OpenFilePickerOptions) => Promise<FileSystemFileHandle[]>
 }
+
+/** Vite exposes only the env vars this app actually reads. */
+interface ImportMetaEnv {
+  readonly VITE_TMDB_KEY?: string
+  readonly DEV: boolean
+  readonly PROD: boolean
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv
+}

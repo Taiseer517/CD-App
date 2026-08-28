@@ -21,7 +21,7 @@ export function WishlistPage() {
 
         <AlbumSearch
           actionLabel="Add to wishlist"
-          placeholder="Search for a record you want…"
+          placeholder="Search for a record or film you want…"
           onAdd={async (input) => {
             const created = await addItem({ ...input, wishlist: true })
             setJustAdded(created.title)

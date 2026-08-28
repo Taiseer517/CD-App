@@ -21,7 +21,7 @@ export function AdminPage() {
       <div className="space-y-6">
         <AlbumSearch
           actionLabel="Add to collection"
-          placeholder="Search for a record you own…"
+          placeholder="Search for a record or film you own…"
           onAdd={async (input) => {
             await addItem(input)
           }}

@@ -69,6 +69,7 @@ export function ShelfAlcove({ to, name, count, items, index }: ShelfAlcoveProps)
                       src={safeImageUrl(item.coverImageUrl)}
                       alt=""
                       loading="lazy"
+                      crossOrigin="anonymous"
                       className="h-full w-full object-cover brightness-[0.82] transition-[filter,transform] duration-700 group-hover:scale-[1.04] group-hover:brightness-105"
                     />
                   ) : (

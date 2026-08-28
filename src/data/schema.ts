@@ -53,6 +53,16 @@ export const CollectionItemSchema = z.object({
   catalogNumber: z.string().default(''),
   country: z.string().default(''),
   trackList: z.array(TrackSchema).default([]),
+
+  // --- Where the facts above came from, so the archive can show its working
+  // rather than asking to be taken on trust.
+  sourceName: z.string().default(''),
+  sourceUrl: z.string().default(''),
+
+  // --- Film-specific, from TMDB. Empty for music, and never rendered empty.
+  synopsis: z.string().default(''),
+  cast: z.array(z.string()).default([]),
+  runtimeMinutes: z.number().int().nonnegative().default(0),
 })
 
 export type CollectionItem = z.infer<typeof CollectionItemSchema>

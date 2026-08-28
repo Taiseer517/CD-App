@@ -159,6 +159,8 @@ export function mapReleaseToPatch(release: RawRelease): Partial<CollectionItemIn
     format,
     musicbrainzId: release.id,
     trackList: tracks,
+    sourceName: 'MusicBrainz',
+    sourceUrl: `https://musicbrainz.org/release/${release.id}`,
   }
 
   // Only overwrite year and genre when the lookup actually knows them, so a
