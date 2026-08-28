@@ -35,6 +35,7 @@ interface CollectionState {
   renameShelf: (id: string, name: string) => Promise<void>
   deleteShelf: (id: string) => Promise<void>
   savePlacements: (placements: { id: string; shelfId: string | null; position: number }[]) => Promise<void>
+  moveItemToShelf: (id: string, shelfId: string | null) => Promise<void>
 
   connectFile: () => Promise<void>
   reconnectFile: () => Promise<void>
@@ -164,6 +165,30 @@ export const useCollectionStore = create<CollectionState>((set, get) => {
         }),
       }))
       scheduleSync()
+    },
+
+    /** Files a record at the end of another shelf, renumbering as it goes. */
+    async moveItemToShelf(id, shelfId) {
+      const { items } = get()
+      const item = items.find((entry) => entry.id === id)
+      if (!item || (item.shelfId ?? null) === shelfId) return
+
+      const destination = items
+        .filter((entry) => entry.id !== id && (entry.shelfId ?? null) === shelfId && !entry.wishlist)
+        .sort((a, b) => a.position - b.position)
+
+      const source = items
+        .filter(
+          (entry) =>
+            entry.id !== id && (entry.shelfId ?? null) === (item.shelfId ?? null) && !entry.wishlist,
+        )
+        .sort((a, b) => a.position - b.position)
+
+      await get().savePlacements([
+        { id, shelfId, position: destination.length },
+        // Close the gap it left behind, so the old shelf stays numbered 0..n.
+        ...source.map((entry, position) => ({ id: entry.id, shelfId: entry.shelfId, position })),
+      ])
     },
 
     async connectFile() {

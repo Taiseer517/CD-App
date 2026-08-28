@@ -10,7 +10,18 @@ import {
   ROW_STANDARD_HEIGHT,
   SHELF_HEADROOM,
   SHELF_INSET,
+  SPINE_GAP,
+  SPINE_THICKNESS,
 } from './dimensions'
+
+/**
+ * How a shelf is presenting its contents.
+ *
+ * A shelf displays its records face-out while there is room to, and packs
+ * them spine-out once there is not — which is exactly what people do with a
+ * real shelf, and the only way a few hundred discs fit at all.
+ */
+export type ShelfMode = 'face' | 'spine'
 
 export interface PlacedCase {
   item: CollectionItem
@@ -28,6 +39,7 @@ export interface PlacedCase {
 export interface RowLayout {
   /** Width of the bookcase this row belongs to. */
   width: number
+  mode: ShelfMode
   /** null is the implicit Unfiled row, which cannot be renamed or deleted. */
   shelfId: string | null
   name: string
@@ -103,10 +115,16 @@ function widestCase(items: CollectionItem[], height: number): number {
  * its contents into an unreadable smear — the bookcase is a fixed piece of
  * furniture, so it is the shelving that gives, exactly as it would in a room.
  */
-function rowCapacity(items: CollectionItem[], height: number, width: number): number {
-  if (items.length === 0) return 1
-  const widest = widestCase(items, height)
-  const pitch = widest + CASE_GAP
+/** Drawn thickness of a spine, scaled to the row's shared height. */
+function spineWidth(item: CollectionItem, height: number): number {
+  return SPINE_THICKNESS[item.type] * (height / ROW_STANDARD_HEIGHT[item.type])
+}
+
+function widestSpine(items: CollectionItem[], height: number): number {
+  return items.reduce((max, item) => Math.max(max, spineWidth(item, height)), 0)
+}
+
+function capacityFor(pitch: number, widest: number, width: number): number {
   const usable = width - SHELF_INSET * 2
   return Math.max(1, Math.floor((usable - widest) / pitch) + 1)
 }
@@ -164,19 +182,28 @@ export function layoutBookcase(items: CollectionItem[], shelves: Shelf[]): Bookc
     if (definition.shelfId === null && shelfItems.length === 0 && definitions.length > 1) continue
 
     const caseHeight = standardHeight(shelfItems)
-    const capacity = rowCapacity(shelfItems, caseHeight, bookcaseWidth)
+
+    const faceWidest = widestCase(shelfItems, caseHeight)
+    const facePitch = faceWidest + CASE_GAP
+    const faceCapacity = capacityFor(facePitch, faceWidest, bookcaseWidth)
+
+    // Face-out while one row can hold everything; spine-out once it cannot.
+    const mode: ShelfMode = shelfItems.length <= faceCapacity ? 'face' : 'spine'
+
+    const spineWidest = widestSpine(shelfItems, caseHeight)
+    const pitch = mode === 'face' ? facePitch : spineWidest + SPINE_GAP
+    const widest = mode === 'face' ? faceWidest : spineWidest
+    const capacity = mode === 'face' ? faceCapacity : capacityFor(pitch, widest, bookcaseWidth)
     const chunkCount = Math.max(1, Math.ceil(shelfItems.length / capacity))
 
     for (let chunk = 0; chunk < chunkCount; chunk++) {
       const startIndex = chunk * capacity
       const chunkItems = shelfItems.slice(startIndex, startIndex + capacity)
       const height = caseHeight + SHELF_HEADROOM
-      // Spacing comes from the shelf's capacity, not this chunk's count, so a
-      // half-full continuation row lines up with the full row above it.
-      const pitch = widestCase(shelfItems, caseHeight) + CASE_GAP
 
       rows.push({
         width: bookcaseWidth,
+        mode,
         shelfId: definition.shelfId,
         name: definition.name,
         accent: definition.accent,
@@ -187,16 +214,20 @@ export function layoutBookcase(items: CollectionItem[], shelves: Shelf[]): Bookc
         pitch: pitch || CASE_GAP,
         startIndex,
         continued: chunk > 0,
-        cases: chunkItems.map((item, offset) => ({
-          item,
-          index: startIndex + offset,
-          width: drawnWidth(item, caseHeight),
-          height: caseHeight,
-          depth: CASE_DIMENSIONS[item.type].depth,
-          x: slotX(offset, pitch, drawnWidth(item, caseHeight), bookcaseWidth),
-          // Cases rest on the plank rather than floating at the row's centre.
-          y: cursor - height + SHELF_HEADROOM / 2 + caseHeight / 2,
-        })),
+        cases: chunkItems.map((item, offset) => {
+          const drawn =
+            mode === 'face' ? drawnWidth(item, caseHeight) : spineWidth(item, caseHeight)
+          return {
+            item,
+            index: startIndex + offset,
+            width: drawn,
+            height: caseHeight,
+            depth: mode === 'face' ? CASE_DIMENSIONS[item.type].depth : drawnWidth(item, caseHeight),
+            x: slotX(offset, pitch, drawn, bookcaseWidth),
+            // Cases rest on the plank rather than floating at the row's centre.
+            y: cursor - height + SHELF_HEADROOM / 2 + caseHeight / 2,
+          }
+        }),
       })
 
       cursor -= height + PLANK_THICKNESS

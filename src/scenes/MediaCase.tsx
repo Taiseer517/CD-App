@@ -4,8 +4,9 @@ import { useRef, useState } from 'react'
 import { DoubleSide, type Group } from 'three'
 import type { CollectionItem } from '../data/schema'
 import { useLabelTexture } from './hooks/useLabelTexture'
+import { useSpineTexture } from './hooks/useSpineTexture'
 import { useLazyTexture } from './hooks/useLazyTexture'
-import type { PlacedCase } from './layout'
+import type { PlacedCase, ShelfMode } from './layout'
 
 const CASE_BODY: Record<CollectionItem['type'], string> = {
   cd: '#17121e',
@@ -17,6 +18,7 @@ const FALLBACK_GLOW = '#c22f3f'
 
 interface MediaCaseProps {
   placed: PlacedCase
+  mode: ShelfMode
   selected: boolean
   dragging: boolean
   reducedMotion: boolean
@@ -148,6 +150,7 @@ function Record({
 
 export function MediaCase({
   placed,
+  mode,
   selected,
   dragging,
   reducedMotion,
@@ -156,13 +159,27 @@ export function MediaCase({
 }: MediaCaseProps) {
   const { item, width, height, depth } = placed
   const [hovered, setHovered] = useState(false)
+  const spineOut = mode === 'spine'
+  /** Whether the sleeve faces are worth building at all. */
+  const revealed = !spineOut || hovered || selected
 
-  const front = useLazyTexture(item.coverImageUrl || undefined)
-  const back = useLazyTexture(item.backCoverImageUrl || undefined)
+  // Spine-out, the case is turned side-on; the box's own front face is then
+  // its depth, so face and spine geometry swap roles.
+  const faceWidth = spineOut ? depth : width
+  const spineWidth = spineOut ? width : depth
+
+  const front = useLazyTexture(revealed ? item.coverImageUrl || undefined : undefined)
+  const back = useLazyTexture(revealed ? item.backCoverImageUrl || undefined : undefined)
   // Stands in for a sleeve with no scan yet — a film before TMDB is wired up,
   // or anything added by hand. Without it those cases are blank slabs.
-  const label = useLabelTexture(!item.coverImageUrl, item.title, item.artistOrDirector, width / height)
+  const label = useLabelTexture(
+    revealed && !item.coverImageUrl,
+    item.title,
+    item.artistOrDirector,
+    faceWidth / height,
+  )
   const faceTexture = front ?? label
+  const spine = useSpineTexture(spineOut, item.title, item.artistOrDirector, item.dominantColor)
   const glow = item.dominantColor || FALLBACK_GLOW
 
   // Pointer-down starts a drag, but a click must still select. Distinguished
@@ -170,16 +187,20 @@ export function MediaCase({
   // selects and a quick flick still drags.
   const pressRef = useRef<{ x: number; y: number; dragging: boolean } | null>(null)
 
+  // Spine-out, the resting pose is turned a quarter-turn away. Hovering
+  // rotates it back toward the viewer and eases it forward — the motion of
+  // tipping a case out of a packed row to see what it is.
+  const restRotation = spineOut ? -Math.PI / 2 : 0
   const spring = useSpring({
-    z: selected ? 0.78 : hovered ? 0.14 : 0,
-    lift: selected ? height * 0.16 : hovered ? height * 0.04 : 0,
-    rotationY: selected ? Math.PI : 0,
-    scale: selected ? 1.16 : hovered ? 1.045 : 1,
+    z: selected ? 0.78 : hovered ? (spineOut ? 0.42 : 0.14) : 0,
+    lift: selected ? height * 0.16 : hovered ? height * (spineOut ? 0.1 : 0.04) : 0,
+    rotationY: selected ? Math.PI : hovered ? 0 : restRotation,
+    scale: selected ? 1.16 : hovered ? (spineOut ? 1.08 : 1.045) : 1,
     tilt: hovered && !selected ? -0.13 : 0,
-    emissive: selected ? 0.5 : hovered ? 0.3 : 0,
+    emissive: selected ? 0.5 : hovered ? 0.34 : 0,
     config: reducedMotion
       ? { tension: 400, friction: 60 }
-      : { tension: 200, friction: 23 },
+      : { tension: 190, friction: 22 },
   })
 
   function handlePointerDown(event: { stopPropagation: () => void; nativeEvent: PointerEvent }) {
@@ -230,44 +251,74 @@ export function MediaCase({
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
     >
-      <mesh>
-        <boxGeometry args={[width, height, depth]} />
-        <animated.meshStandardMaterial
-          color={CASE_BODY[item.type]}
-          emissive={glow}
-          emissiveIntensity={spring.emissive}
-          roughness={item.type === 'vinyl' ? 0.93 : 0.36}
-          metalness={item.type === 'vinyl' ? 0 : 0.18}
-        />
-      </mesh>
+      {/* The case body. Packed spine-out and untouched, the box is hidden on
+          all sides but one by its neighbours, so only that face is drawn —
+          which halves the draw calls on a shelf of several hundred. */}
+      {revealed && (
+        <mesh>
+          <boxGeometry args={[faceWidth, height, spineWidth]} />
+          <animated.meshStandardMaterial
+            color={CASE_BODY[item.type]}
+            emissive={glow}
+            emissiveIntensity={spring.emissive}
+            roughness={item.type === 'vinyl' ? 0.93 : 0.36}
+            metalness={item.type === 'vinyl' ? 0 : 0.18}
+          />
+        </mesh>
+      )}
 
-      {/* Front artwork, or a printed label when there is no scan */}
-      <mesh position={[0, 0, depth / 2 + 0.001]}>
-        <planeGeometry args={[width * 0.97, height * 0.97]} />
-        <meshStandardMaterial
-          key={faceTexture?.uuid ?? 'no-front'}
-          map={faceTexture ?? undefined}
-          color={faceTexture ? '#ffffff' : '#241a2e'}
-          roughness={item.type === 'vinyl' ? 0.9 : 0.5}
-        />
-      </mesh>
+      {/* Front artwork, or a printed label when there is no scan. Packed
+          spine-out and untouched, both faces are hidden by the neighbouring
+          cases, so they are not built at all until one is tipped out. */}
+      {revealed && (
+        <mesh position={[0, 0, spineWidth / 2 + 0.001]}>
+          <planeGeometry args={[faceWidth * 0.97, height * 0.97]} />
+          <meshStandardMaterial
+            key={faceTexture?.uuid ?? 'no-front'}
+            map={faceTexture ?? undefined}
+            color={faceTexture ? '#ffffff' : '#241a2e'}
+            roughness={item.type === 'vinyl' ? 0.9 : 0.5}
+          />
+        </mesh>
+      )}
 
       {/* Back artwork, turned so it reads correctly once the case is flipped */}
-      <mesh position={[0, 0, -depth / 2 - 0.001]} rotation={[0, Math.PI, 0]}>
-        <planeGeometry args={[width * 0.97, height * 0.97]} />
-        <meshStandardMaterial
-          key={back?.uuid ?? 'no-back'}
-          map={back ?? undefined}
-          color={back ? '#ffffff' : '#191122'}
-          roughness={0.72}
-        />
-      </mesh>
+      {revealed && (
+        <mesh position={[0, 0, -spineWidth / 2 - 0.001]} rotation={[0, Math.PI, 0]}>
+          <planeGeometry args={[faceWidth * 0.97, height * 0.97]} />
+          <meshStandardMaterial
+            key={back?.uuid ?? 'no-back'}
+            map={back ?? undefined}
+            color={back ? '#ffffff' : '#191122'}
+            roughness={0.72}
+          />
+        </mesh>
+      )}
+
+      {/* The printed spine, on the face that meets the viewer when packed */}
+      {spineOut && (
+        <mesh position={[faceWidth / 2 + 0.001, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
+          <planeGeometry args={[spineWidth * 0.99, height * 0.985]} />
+          <meshStandardMaterial
+            key={spine?.uuid ?? 'no-spine'}
+            map={spine ?? undefined}
+            color={spine ? '#ffffff' : glow}
+            roughness={0.36}
+            metalness={0.06}
+          />
+        </mesh>
+      )}
 
       {item.type === 'vinyl' ? (
-        <Record item={item} open={selected} size={width} reducedMotion={reducedMotion} />
+        <Record item={item} open={selected} size={faceWidth} reducedMotion={reducedMotion} />
       ) : (
         item.type === 'cd' && (
-          <Disc item={item} open={selected} size={Math.min(width, height)} reducedMotion={reducedMotion} />
+          <Disc
+            item={item}
+            open={selected}
+            size={Math.min(faceWidth, height)}
+            reducedMotion={reducedMotion}
+          />
         )
       )}
     </animated.group>

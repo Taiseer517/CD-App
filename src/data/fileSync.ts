@@ -9,7 +9,7 @@ import {
 } from './schema'
 
 const HANDLE_KEY = 'archiveFileHandle'
-const SUGGESTED_NAME = 'the-archive.json'
+const SUGGESTED_NAME = 'zarins-archive.json'
 
 /**
  * Keeps a real JSON file on disk in step with the collection.
@@ -51,7 +51,7 @@ export async function chooseArchiveFile(): Promise<FileSystemFileHandle | null> 
     const handle = await window.showSaveFilePicker({
       suggestedName: SUGGESTED_NAME,
       id: 'the-archive-collection',
-      types: [{ description: 'The Archive collection', accept: { 'application/json': ['.json'] } }],
+      types: [{ description: "Zarin's Archive collection", accept: { 'application/json': ['.json'] } }],
     })
     await writeMeta(HANDLE_KEY, handle)
     return handle
@@ -161,7 +161,7 @@ export function downloadArchive(archive: ArchiveFile): void {
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement('a')
   anchor.href = url
-  anchor.download = `the-archive-${archive.exportedAt.slice(0, 10)}.json`
+  anchor.download = `zarins-archive-${archive.exportedAt.slice(0, 10)}.json`
   document.body.appendChild(anchor)
   anchor.click()
   anchor.remove()

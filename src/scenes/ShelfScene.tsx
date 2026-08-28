@@ -334,25 +334,28 @@ function SceneContents({
       <color attach="background" args={['#07050a']} />
       <fog attach="fog" args={['#07050a', ambience.fogNear, ambience.fogFar]} />
 
-      {/* A low wash so nothing is ever pure black, then the candles do the
-          real work of lighting the shelves from within the furniture. */}
-      <ambientLight intensity={0.4} />
-      <hemisphereLight args={[ambience.keyColor, '#0d0913', 0.42]} />
+      {/* Dark is the mood, but the artwork is the point — the sleeves have to
+          read clearly first and be atmospheric second. */}
+      <ambientLight intensity={0.85} />
+      <hemisphereLight args={[ambience.keyColor, '#171020', 0.75]} />
       <pointLight
-        position={[2.4, centreY + 0.9, 5.2]}
-        intensity={ambience.keyIntensity * 0.7}
+        position={[2.6, centreY + 1.1, 5.4]}
+        intensity={ambience.keyIntensity}
         color={ambience.keyColor}
-        distance={26}
-        decay={1.7}
+        distance={30}
+        decay={1.5}
       />
       <pointLight
-        position={[-4.6, centreY - 1.4, 3.4]}
-        intensity={17}
+        position={[-4.8, centreY - 1.2, 3.8]}
+        intensity={26}
         color={ambience.rimColor}
-        distance={18}
-        decay={1.8}
+        distance={20}
+        decay={1.6}
       />
-      <directionalLight position={[0, 2, 6]} intensity={0.62} color="#e6d5c2" />
+      {/* Flat frontal fill, so a sleeve at the far end of a packed row is not
+          lost to falloff. */}
+      <directionalLight position={[0, 2, 6]} intensity={1.15} color="#f0e2cf" />
+      <directionalLight position={[-3, -1, 5]} intensity={0.4} color="#b79ad6" />
 
       <group ref={groupRef} position={[0, centreY, 0]}>
         <Bookcase

@@ -32,6 +32,20 @@ export const ROW_STANDARD_HEIGHT: Record<MediaType, number> = {
   vinyl: 1.5,
 }
 
+/**
+ * Drawn thickness of a case stored spine-out. Slightly exaggerated over the
+ * real 10mm of a jewel case: at true scale a spine is a couple of pixels on
+ * screen, too thin to read a colour off or to click.
+ */
+export const SPINE_THICKNESS: Record<MediaType, number> = {
+  cd: 0.1,
+  dvd: 0.122,
+  vinyl: 0.08,
+}
+
+/** Gap between packed spines. Tight, the way a full shelf actually is. */
+export const SPINE_GAP = 0.014
+
 export const SHELF_HEADROOM = 0.34
 export const PLANK_THICKNESS = 0.09
 export const PLANK_DEPTH = 1.7
@@ -48,8 +62,10 @@ export const PLANK_DEPTH = 1.7
  */
 export function bookcaseWidthFor(largestShelf: number): number {
   if (largestShelf <= 14) return 5.6
-  if (largestShelf <= 70) return 7.6
-  return 9.8
+  if (largestShelf <= 70) return 6.8
+  // Capped rather than growing without limit: a case wider than this is all
+  // width and no height, and leaves the view mostly empty above and below it.
+  return 7.6
 }
 
 /** Default used by anything that needs a width before the layout is known. */

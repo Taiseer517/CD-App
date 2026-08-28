@@ -17,29 +17,31 @@ export interface Ambience {
 const MOODS: { match: RegExp; ambience: Partial<Ambience> }[] = [
   {
     match: /doom|funeral|sludge/i,
-    ambience: { fogNear: 11, fogFar: 26, driftSpeed: 0.07, keyColor: '#c98a52', keyIntensity: 40 },
+    ambience: { fogNear: 15, fogFar: 34, driftSpeed: 0.07, keyColor: '#c98a52', keyIntensity: 58 },
   },
   {
     match: /black|death|blackened/i,
-    ambience: { fogNear: 12, fogFar: 28, driftSpeed: 0.1, keyColor: '#b8734a', rimColor: '#5b2f8a' },
+    ambience: { fogNear: 16, fogFar: 36, driftSpeed: 0.1, keyColor: '#b8734a', rimColor: '#5b2f8a' },
   },
   {
     match: /gothic rock|darkwave|post-punk|ethereal|neoclassical/i,
-    ambience: { keyColor: '#d8a06a', rimColor: '#a37bd1', fogNear: 15, fogFar: 36, driftSpeed: 0.15 },
+    ambience: { keyColor: '#d8a06a', rimColor: '#a37bd1', fogNear: 19, fogFar: 46, driftSpeed: 0.15 },
   },
   {
     match: /gothic/i,
-    ambience: { keyColor: '#d09155', rimColor: '#7c4fb0', fogNear: 13, fogFar: 30 },
+    ambience: { keyColor: '#d09155', rimColor: '#7c4fb0', fogNear: 17, fogFar: 40 },
   },
 ]
 
 const BASE: Ambience = {
-  keyColor: '#ffc08c',
-  rimColor: '#8a5cc0',
-  fogNear: 14,
-  fogFar: 34,
+  keyColor: '#ffd0a4',
+  rimColor: '#9d70d4',
+  // Fog set well beyond the furniture: it should soften the room behind the
+  // bookcase, never veil the shelves themselves.
+  fogNear: 18,
+  fogFar: 44,
   driftSpeed: 0.13,
-  keyIntensity: 52,
+  keyIntensity: 74,
 }
 
 export function deriveAmbience(items: CollectionItem[]): Ambience {

@@ -144,18 +144,49 @@ describe('layoutBookcase', () => {
     expect(layout.rows[0].caseHeight).toBe(ROW_STANDARD_HEIGHT.vinyl)
   })
 
+  it('shows a shelf face-out while there is room, then packs it spine-out', () => {
+    const few = layoutBookcase(
+      Array.from({ length: 5 }, () => make({ shelfId: 's1' })),
+      [shelf('s1', 'Few', 0)],
+    )
+    const many = layoutBookcase(
+      Array.from({ length: 120 }, () => make({ shelfId: 's1' })),
+      [shelf('s1', 'Many', 0)],
+    )
+
+    expect(few.rows[0].mode).toBe('face')
+    expect(many.rows[0].mode).toBe('spine')
+  })
+
+  it('fits far more per row spine-out than face-out', () => {
+    const face = layoutBookcase(
+      Array.from({ length: 5 }, () => make({ shelfId: 's1' })),
+      [shelf('s1', 'Few', 0)],
+    )
+    const spine = layoutBookcase(
+      Array.from({ length: 120 }, () => make({ shelfId: 's1' })),
+      [shelf('s1', 'Many', 0)],
+    )
+
+    expect(spine.rows[0].cases.length).toBeGreaterThan(face.rows[0].cases.length * 8)
+    // A spine is drawn far narrower than a sleeve, but never so thin it
+    // cannot be clicked.
+    expect(spine.rows[0].cases[0].width).toBeLessThan(face.rows[0].cases[0].width / 4)
+    expect(spine.rows[0].cases[0].width).toBeGreaterThan(0.05)
+  })
+
   it('keeps a large collection to a workable number of rows', () => {
     const layout = layoutBookcase(
       Array.from({ length: 300 }, () => make({ shelfId: 's1', type: 'cd' })),
       [shelf('s1', 'Discs', 0)],
     )
 
-    // A hundred-row tower is unusable; the wider case keeps it far shorter.
-    expect(layout.rows.length).toBeLessThan(30)
+    // A hundred-row tower is unusable; packing spine-out keeps it to a few.
+    expect(layout.rows.length).toBeLessThanOrEqual(5)
   })
 
   it('spills a shelf onto continuation rows instead of squeezing it', () => {
-    const many = Array.from({ length: 40 }, () => make({ shelfId: 's1' }))
+    const many = Array.from({ length: 400 }, () => make({ shelfId: 's1' }))
     const layout = layoutBookcase(many, [shelf('s1', 'Packed', 0)])
 
     const shelfRows = layout.rows.filter((row) => row.shelfId === 's1')
@@ -165,8 +196,8 @@ describe('layoutBookcase', () => {
 
     // Every record is still on the shelf exactly once, in order.
     const placed = itemsOnShelf(layout, 's1')
-    expect(placed).toHaveLength(40)
-    expect(new Set(placed.map((i) => i.id)).size).toBe(40)
+    expect(placed).toHaveLength(400)
+    expect(new Set(placed.map((i) => i.id)).size).toBe(400)
   })
 
   it('keeps continuation rows aligned with the row above', () => {
@@ -181,7 +212,7 @@ describe('layoutBookcase', () => {
 
   it('indexes a drop on a continuation row against the whole shelf', () => {
     const layout = layoutBookcase(
-      Array.from({ length: 40 }, () => make({ shelfId: 's1' })),
+      Array.from({ length: 400 }, () => make({ shelfId: 's1' })),
       [shelf('s1', 'Packed', 0)],
     )
     const second = layout.rows.filter((row) => row.shelfId === 's1')[1]

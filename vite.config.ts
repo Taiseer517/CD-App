@@ -19,9 +19,9 @@ export default defineConfig(({ command }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['icons/apple-touch-icon.png', 'icons/favicon-32.png'],
       manifest: {
-        name: 'The Archive',
-        short_name: 'The Archive',
-        description: 'A private catalogue of CDs, records and films.',
+        name: "Zarin's Archive",
+        short_name: "Zarin's Archive",
+        description: "Zarin's private catalogue of CDs, records and films.",
         theme_color: '#08060a',
         background_color: '#08060a',
         display: 'standalone',

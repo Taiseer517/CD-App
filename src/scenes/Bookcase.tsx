@@ -7,10 +7,10 @@ import { Candle } from './Candle'
 import { usePlaqueTexture } from './hooks/usePlaqueTexture'
 import { MediaCase } from './MediaCase'
 
-const OAK = '#2b2033'
-const OAK_DARK = '#1a1322'
-const OAK_LIGHT = '#3a2c46'
-const BRASS = '#6b5535'
+const OAK = '#3a2c48'
+const OAK_DARK = '#241a2e'
+const OAK_LIGHT = '#503d63'
+const BRASS = '#8a6f45'
 
 /** Beyond this, candles still burn but stop casting their own light. */
 const MAX_LIT_CANDLES = 3
@@ -220,6 +220,7 @@ function ShelfRow({
         <MediaCase
           key={placed.item.id}
           placed={placed}
+          mode={row.mode}
           selected={selectedId === placed.item.id}
           dragging={draggingId === placed.item.id}
           reducedMotion={reducedMotion}

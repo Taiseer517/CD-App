@@ -21,6 +21,8 @@ interface CaseDetailPanelProps {
  */
 export function CaseDetailPanel({ item, onClose }: CaseDetailPanelProps) {
   const updateItem = useCollectionStore((state) => state.updateItem)
+  const shelves = useCollectionStore((state) => state.shelves)
+  const moveItemToShelf = useCollectionStore((state) => state.moveItemToShelf)
 
   return (
     <AnimatePresence>
@@ -84,6 +86,28 @@ export function CaseDetailPanel({ item, onClose }: CaseDetailPanelProps) {
                   </div>
                 ))}
             </dl>
+
+            <div>
+              <label
+                htmlFor="move-to-shelf"
+                className="mb-1 block text-xs uppercase tracking-wide text-bone-400"
+              >
+                Move to shelf
+              </label>
+              <select
+                id="move-to-shelf"
+                value={item.shelfId ?? ''}
+                onChange={(event) => moveItemToShelf(item.id, event.target.value || null)}
+                className="w-full rounded-md border border-void-700 bg-void-950 px-2 py-1.5 text-sm text-bone-100 focus:border-velvet-400 focus:outline-none"
+              >
+                <option value="">Unfiled</option>
+                {shelves.map((shelf) => (
+                  <option key={shelf.id} value={shelf.id}>
+                    {shelf.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             {item.notes && (
               <p className="border-l-2 border-blood-700 pl-3 text-sm italic text-bone-300">

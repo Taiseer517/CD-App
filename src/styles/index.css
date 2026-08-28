@@ -41,6 +41,55 @@ body {
   font-family: var(--font-body);
 }
 
+/* Two faint pools of colour high in the room, so the ground behind the
+   content is lit rather than flat black. Fixed, so they read as the room
+   rather than as part of the page scrolling past. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% -8%, rgba(124, 79, 176, 0.16), transparent 68%),
+    radial-gradient(ellipse 50% 35% at 88% 8%, rgba(155, 40, 60, 0.09), transparent 70%);
+}
+
+/* Everything the app draws sits above that wash. */
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+/* A worn stone ground for the wall of niches. The repeating conic slivers
+   read as mortar joints without needing an image. */
+.stone-wall {
+  background-color: #120c19;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 50% 0%, rgba(124, 79, 176, 0.13), transparent 70%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.014) 0 1px,
+      transparent 1px 84px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.3) 0 2px,
+      transparent 2px 168px
+    );
+}
+
+::selection {
+  background: var(--color-blood-700);
+  color: var(--color-bone-100);
+}
+
+/* Keyboard focus must stay visible in a design this dark. */
+:focus-visible {
+  outline: 2px solid var(--color-velvet-400);
+  outline-offset: 3px;
+}
+
 h1, h2, h3, h4 {
   font-family: var(--font-display);
   letter-spacing: 0.02em;
