@@ -1,6 +1,7 @@
 import { AnimatePresence } from 'framer-motion'
 import { lazy, Suspense } from 'react'
 import { HashRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { useInterfaceSounds } from './audio/useInterfaceSounds'
 import { AppShell } from './components/layout/AppShell'
 import { AdminItemFormPage } from './pages/AdminItemFormPage'
 import { AdminPage } from './pages/AdminPage'
@@ -20,6 +21,7 @@ const WallPage = lazy(() => import('./pages/WallPage').then((module) => ({ defau
 
 function AnimatedRoutes() {
   const location = useLocation()
+  useInterfaceSounds()
 
   return (
     <AnimatePresence mode="wait">

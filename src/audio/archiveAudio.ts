@@ -24,7 +24,9 @@ interface Nodes {
 let nodes: Nodes | null = null
 
 /** Room tone sits well under the interaction sounds so it never masks them. */
-const AMBIENCE_LEVEL = 0.16
+// Bells are sparse and quiet, so the room can sit higher than a drone could
+// without becoming wallpaper.
+const AMBIENCE_LEVEL = 0.34
 const EFFECTS_LEVEL = 0.5
 
 function ensure(): Nodes | null {
@@ -116,29 +118,113 @@ function tone(
 }
 
 /**
- * The room: two drones a fifth apart, detuned just enough to beat slowly
- * against each other, over filtered noise. The beating is what stops it
- * sounding like a held synth chord.
+ * A bell, struck.
+ *
+ * Bells are inharmonic — their partials are not whole multiples of the
+ * fundamental, which is exactly why a bell sounds like a bell and a sine
+ * sounds like a test tone. These ratios are roughly those of a tuned church
+ * bell: the hum an octave below, the prime, the minor third that gives a bell
+ * its melancholy, then the fifth and the nominal.
  */
+const BELL_PARTIALS: [ratio: number, level: number, decay: number][] = [
+  [0.5, 0.28, 1],
+  [1, 1, 0.9],
+  [1.19, 0.5, 0.62],
+  [1.5, 0.32, 0.5],
+  [2, 0.36, 0.42],
+  [2.5, 0.16, 0.3],
+  [3.42, 0.1, 0.22],
+  [4.5, 0.06, 0.16],
+]
+
+function strike(n: Nodes, frequency: number, level: number, bus: AudioNode, decay = 5) {
+  const { ctx } = n
+  const now = ctx.currentTime
+
+  for (const [ratio, partialLevel, partialDecay] of BELL_PARTIALS) {
+    const osc = ctx.createOscillator()
+    osc.type = 'sine'
+    osc.frequency.value = frequency * ratio
+
+    const env = ctx.createGain()
+    const peak = level * partialLevel
+    env.gain.setValueAtTime(0.0001, now)
+    env.gain.exponentialRampToValueAtTime(peak, now + 0.004)
+    env.gain.exponentialRampToValueAtTime(0.0001, now + decay * partialDecay)
+
+    osc.connect(env).connect(bus)
+    osc.start(now)
+    osc.stop(now + decay * partialDecay + 0.1)
+  }
+
+  // The clapper itself: a click of noise, without which a struck bell sounds
+  // like it faded in rather than being hit.
+  const frames = Math.floor(ctx.sampleRate * 0.03)
+  const buffer = ctx.createBuffer(1, frames, ctx.sampleRate)
+  const data = buffer.getChannelData(0)
+  for (let i = 0; i < frames; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / frames) ** 3
+  const source = ctx.createBufferSource()
+  source.buffer = buffer
+  const filter = ctx.createBiquadFilter()
+  filter.type = 'bandpass'
+  filter.frequency.value = frequency * 3
+  filter.Q.value = 1.2
+  const clack = ctx.createGain()
+  clack.gain.value = level * 0.12
+  source.connect(filter).connect(clack).connect(bus)
+  source.start(now)
+}
+
+/**
+ * The room: a slow carillon over a very quiet drone.
+ *
+ * The melody wanders a natural minor scale — the mode most of this music
+ * lives in, and the one that reads as old rather than merely sad. It is a
+ * weighted walk rather than a random pick, so it steps more often than it
+ * leaps and sounds composed rather than scattered, and it rests often,
+ * because a bell that never stops is a smoke alarm.
+ */
+const A_MINOR = [220, 246.94, 261.63, 293.66, 329.63, 349.23, 392, 440, 493.88, 523.25]
+
 function startAmbience(n: Nodes): () => void {
   const { ctx } = n
   const voices: OscillatorNode[] = []
 
-  const bed = ctx.createGain()
-  bed.gain.value = 1
-  bed.connect(n.ambienceBus)
+  const reverb = ctx.createConvolver()
+  // A short hall built from decaying noise: bells with no space around them
+  // sound like a ringtone.
+  const tail = ctx.sampleRate * 3.2
+  const impulse = ctx.createBuffer(2, tail, ctx.sampleRate)
+  for (let channel = 0; channel < 2; channel++) {
+    const data = impulse.getChannelData(channel)
+    for (let i = 0; i < tail; i++) {
+      data[i] = (Math.random() * 2 - 1) * (1 - i / tail) ** 2.6
+    }
+  }
+  reverb.buffer = impulse
 
+  const wet = ctx.createGain()
+  wet.gain.value = 0.55
+  reverb.connect(wet).connect(n.ambienceBus)
+
+  const bells = ctx.createGain()
+  bells.gain.value = 0.5
+  bells.connect(n.ambienceBus)
+  bells.connect(reverb)
+
+  // A drone well under the bells, so the room has a floor without humming.
+  const bed = ctx.createGain()
+  bed.gain.value = 0.16
+  bed.connect(n.ambienceBus)
   const shape = ctx.createBiquadFilter()
   shape.type = 'lowpass'
-  shape.frequency.value = 420
-  shape.Q.value = 0.6
+  shape.frequency.value = 340
   shape.connect(bed)
 
   for (const [frequency, level] of [
     [55, 0.5],
-    [55.35, 0.4],
-    [82.5, 0.26],
-    [110.4, 0.14],
+    [55.3, 0.36],
+    [82.5, 0.2],
   ]) {
     const osc = ctx.createOscillator()
     osc.type = 'sine'
@@ -150,46 +236,32 @@ function startAmbience(n: Nodes): () => void {
     voices.push(osc)
   }
 
-  // Air: very quiet noise, so the silence between drones is not digital.
-  const airFrames = ctx.sampleRate * 4
-  const airBuffer = ctx.createBuffer(1, airFrames, ctx.sampleRate)
-  const airData = airBuffer.getChannelData(0)
-  for (let i = 0; i < airFrames; i++) airData[i] = (Math.random() * 2 - 1) * 0.06
-  const air = ctx.createBufferSource()
-  air.buffer = airBuffer
-  air.loop = true
-  const airFilter = ctx.createBiquadFilter()
-  airFilter.type = 'bandpass'
-  airFilter.frequency.value = 700
-  airFilter.Q.value = 0.4
-  const airGain = ctx.createGain()
-  airGain.gain.value = 0.5
-  air.connect(airFilter).connect(airGain).connect(bed)
-  air.start()
+  let index = 4
+  const melody = window.setInterval(() => {
+    // Rest about a third of the time: the silences are what make it a
+    // carillon drifting through a house rather than a tune being played at
+    // you.
+    if (Math.random() < 0.34) return
 
-  // A distant bell, rarely, so the room has a history rather than a texture.
-  const bell = window.setInterval(
-    () => {
-      if (Math.random() > 0.45) return
-      const base = 196 * (Math.random() > 0.5 ? 1 : 1.5)
-      ;[1, 2.76, 5.4].forEach((partial, index) => {
-        const osc = ctx.createOscillator()
-        osc.type = 'sine'
-        osc.frequency.value = base * partial
-        const env = ctx.createGain()
-        env.gain.setValueAtTime(0.0001, ctx.currentTime)
-        env.gain.exponentialRampToValueAtTime(0.05 / (index + 1), ctx.currentTime + 0.02)
-        env.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 5 + index)
-        osc.connect(env).connect(n.ambienceBus)
-        osc.start()
-        osc.stop(ctx.currentTime + 6 + index)
-      })
-    },
-    21000,
-  )
+    const step = [-2, -1, -1, 1, 1, 2][Math.floor(Math.random() * 6)]
+    index = Math.max(0, Math.min(A_MINOR.length - 1, index + step))
+    strike(n, A_MINOR[index], 0.16, bells, 4.5)
+
+    // Now and then a second bell just after, a third or fifth away.
+    if (Math.random() < 0.28) {
+      const partner = Math.max(0, Math.min(A_MINOR.length - 1, index + (Math.random() < 0.5 ? 2 : 4)))
+      window.setTimeout(() => strike(n, A_MINOR[partner], 0.1, bells, 4), 260 + Math.random() * 340)
+    }
+  }, 2600)
+
+  // The tenor bell, rarely, an octave and a half below the melody.
+  const tenor = window.setInterval(() => {
+    if (Math.random() < 0.5) strike(n, 110, 0.2, bells, 9)
+  }, 27000)
 
   return () => {
-    window.clearInterval(bell)
+    window.clearInterval(melody)
+    window.clearInterval(tenor)
     voices.forEach((osc) => {
       try {
         osc.stop()
@@ -197,11 +269,6 @@ function startAmbience(n: Nodes): () => void {
         // Already stopped; nothing to do.
       }
     })
-    try {
-      air.stop()
-    } catch {
-      // As above.
-    }
   }
 }
 
@@ -275,5 +342,26 @@ export const archiveAudio = {
     const n = nodes
     if (!n?.running) return
     noiseBurst(n, { duration: 0.16, frequency: 2600, q: 0.4, gain: 0.07, sweepTo: 1200 })
+  },
+
+  /** A button pressed: a small struck bell, so the app is of a piece. */
+  click() {
+    const n = nodes
+    if (!n?.running) return
+    strike(n, 880, 0.05, n.effectsBus, 0.9)
+  },
+
+  /** Moving between pages: a fifth above, so navigation reads as going up. */
+  navigate() {
+    const n = nodes
+    if (!n?.running) return
+    strike(n, 1318.5, 0.045, n.effectsBus, 1.2)
+  },
+
+  /** A control turned on or off; the second is a tone lower. */
+  toggle(on: boolean) {
+    const n = nodes
+    if (!n?.running) return
+    strike(n, on ? 1046.5 : 784, 0.055, n.effectsBus, 1.1)
   },
 }

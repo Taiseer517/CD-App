@@ -32,6 +32,7 @@ export function SoundToggle() {
       type="button"
       onClick={toggle}
       aria-pressed={soundOn}
+      data-silent
       title={soundOn ? 'Silence the room' : 'Let the room breathe'}
       className={`rounded-md border px-2.5 py-1 text-sm transition-colors ${
         soundOn
