@@ -6,11 +6,8 @@ import { CaseDetailPanel } from '../components/shelf/CaseDetailPanel'
 import { SearchBox } from '../components/search/SearchBox'
 import type { CollectionItem } from '../data/schema'
 import { shelfIdFromParam, UNFILED_SLUG } from '../data/shelfRoutes'
-import { useReducedMotion } from '../hooks/useReducedMotion'
-import { layoutBookcase, reindexAfterMove } from '../scenes/layout'
-import { ShelfScene, type DropTarget } from '../scenes/ShelfScene'
+import { ShelfCase } from '../components/bookcase/ShelfCase'
 import { themeById } from '../scenes/themes'
-import { useWebglSupport } from '../scenes/hooks/useWebglSupport'
 import { useCollectionStore } from '../store/useCollectionStore'
 import { useUiStore } from '../store/useUiStore'
 
@@ -32,12 +29,8 @@ export function ShelfPage() {
   const savePlacements = useCollectionStore((state) => state.savePlacements)
 
   const searchQuery = useUiStore((state) => state.searchQuery)
-  const cinematicEffects = useUiStore((state) => state.cinematicEffects)
-  const setCinematicEffects = useUiStore((state) => state.setCinematicEffects)
   const theme = themeById(useUiStore((state) => state.theme))
 
-  const webglSupported = useWebglSupport()
-  const reducedMotion = useReducedMotion()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [renaming, setRenaming] = useState(false)
   const [draftName, setDraftName] = useState('')
@@ -69,17 +62,6 @@ export function ShelfPage() {
     [onShelf, selectedId],
   )
 
-  // Layout for this shelf alone, so a drop is numbered against what is drawn.
-  const scenShelves = useMemo(
-    () => (shelf ? [{ ...shelf, order: 0 }] : []),
-    [shelf],
-  )
-
-  async function handleMove(itemId: string, target: DropTarget) {
-    const layout = layoutBookcase(onShelf, scenShelves)
-    await savePlacements(reindexAfterMove(layout, itemId, shelfId, target.index))
-  }
-
   async function handleTidy() {
     const sorted = [...onShelf].sort(
       (a, b) =>
@@ -96,8 +78,6 @@ export function ShelfPage() {
     await deleteShelf(shelf.id)
     navigate('/shelf')
   }
-
-  const showCanvas = webglSupported
 
   return (
     <PageTransition>
@@ -161,14 +141,6 @@ export function ShelfPage() {
                 Take down
               </button>
             )}
-            <label className="flex items-center gap-2 text-sm text-bone-400">
-              <input
-                type="checkbox"
-                checked={cinematicEffects}
-                onChange={(event) => setCinematicEffects(event.target.checked)}
-              />
-              Cinematic
-            </label>
           </div>
         </div>
 
@@ -183,26 +155,16 @@ export function ShelfPage() {
                 : 'Open a record and use “Move to shelf” to put it here.'
             }
           />
-        ) : showCanvas ? (
-          <div className="relative h-[640px] overflow-hidden rounded-xl border border-void-700 bg-void-950">
-            <ShelfScene
+        ) : (
+          <div className="relative overflow-hidden rounded-xl border border-void-700 bg-void-950">
+            <ShelfCase
               items={shown}
-              shelves={scenShelves}
-              selectedId={selectedId}
-              searchActive={searchActive}
-              cinematicEffects={cinematicEffects}
-              reducedMotion={reducedMotion}
               theme={theme}
+              selectedId={selectedId}
               onSelect={(item) => setSelectedId((current) => (current === item.id ? null : item.id))}
-              onMove={handleMove}
             />
             <CaseDetailPanel item={selected} onClose={() => setSelectedId(null)} />
           </div>
-        ) : (
-          <EmptyState
-            title="This browser can't run the 3D shelf"
-            message="No WebGL support was detected — the Collection page shows everything as a grid."
-          />
         )}
       </div>
     </PageTransition>
