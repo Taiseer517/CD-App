@@ -17,6 +17,7 @@ import { CanvasTexture, SRGBColorSpace, type Texture } from 'three'
 const SIZE = 1024
 
 type DiscKind = 'cd' | 'vinyl'
+export type DiscSide = 'front' | 'back'
 
 function loadImage(url: string): Promise<HTMLImageElement | null> {
   return new Promise((resolve) => {
@@ -143,7 +144,19 @@ function overlayGrooves(ctx: CanvasRenderingContext2D, size: number) {
   ctx.restore()
 }
 
-function compose(image: HTMLImageElement | null, kind: DiscKind): Texture | null {
+/** The unprinted side of a CD: mirrored polycarbonate, no artwork. */
+function paintDataSide(ctx: CanvasRenderingContext2D, size: number) {
+  const centre = size / 2
+  const silver = ctx.createRadialGradient(centre, centre, size * 0.08, centre, centre, centre)
+  silver.addColorStop(0, '#4a4d58')
+  silver.addColorStop(0.35, '#b9bfcd')
+  silver.addColorStop(0.72, '#8e94a6')
+  silver.addColorStop(1, '#5c6172')
+  ctx.fillStyle = silver
+  ctx.fillRect(0, 0, size, size)
+}
+
+function compose(image: HTMLImageElement | null, kind: DiscKind, side: DiscSide): Texture | null {
   const canvas = document.createElement('canvas')
   canvas.width = SIZE
   canvas.height = SIZE
@@ -159,8 +172,15 @@ function compose(image: HTMLImageElement | null, kind: DiscKind): Texture | null
   ctx.arc(centre, centre, centre, 0, Math.PI * 2)
   ctx.clip()
 
-  if (image) paintArtwork(ctx, image, SIZE)
-  else paintFallback(ctx, SIZE, kind)
+  // A CD is printed on one side only; turn it over and you get the mirror.
+  // A picture disc is printed both sides, so the record keeps its artwork.
+  if (kind === 'cd' && side === 'back') {
+    paintDataSide(ctx, SIZE)
+  } else if (image) {
+    paintArtwork(ctx, image, SIZE)
+  } else {
+    paintFallback(ctx, SIZE, kind)
+  }
 
   if (kind === 'vinyl') overlayGrooves(ctx, SIZE)
   else overlayDiffraction(ctx, SIZE)
@@ -195,11 +215,19 @@ function compose(image: HTMLImageElement | null, kind: DiscKind): Texture | null
 }
 
 /**
- * The printed face of a disc. Prefers a scan of the disc itself when one
- * exists, and otherwise prints the sleeve across it, which is what a picture
- * disc does.
+ * The printed face of a disc, carrying the album's artwork across the whole
+ * surface the way a picture disc does.
+ *
+ * Deliberately *not* the Cover Art Archive's scan of the disc: those are
+ * photographs of the physical object lying on white, so painting one edge to
+ * edge turns the paper it was photographed on into a white ring around a
+ * shrunken disc.
  */
-export function useDiscFace(artworkUrl: string | undefined, kind: DiscKind): Texture | null {
+export function useDiscFace(
+  artworkUrl: string | undefined,
+  kind: DiscKind,
+  side: DiscSide = 'front',
+): Texture | null {
   const [texture, setTexture] = useState<Texture | null>(null)
 
   useEffect(() => {
@@ -207,9 +235,10 @@ export function useDiscFace(artworkUrl: string | undefined, kind: DiscKind): Tex
     let created: Texture | null = null
 
     void (async () => {
-      const image = artworkUrl ? await loadImage(artworkUrl) : null
+      const needsArt = !(kind === 'cd' && side === 'back')
+      const image = needsArt && artworkUrl ? await loadImage(artworkUrl) : null
       if (!active) return
-      created = compose(image, kind)
+      created = compose(image, kind, side)
       setTexture(created)
     })()
 
@@ -217,7 +246,7 @@ export function useDiscFace(artworkUrl: string | undefined, kind: DiscKind): Tex
       active = false
       created?.dispose()
     }
-  }, [artworkUrl, kind])
+  }, [artworkUrl, kind, side])
 
   return texture
 }

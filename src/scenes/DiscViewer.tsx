@@ -2,7 +2,7 @@ import { animated, useSpring } from '@react-spring/three'
 import { Environment, Lightformer } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { DoubleSide, MathUtils, type Group } from 'three'
+import { MathUtils, type Group } from 'three'
 import { archiveAudio } from '../audio/archiveAudio'
 import type { CollectionItem } from '../data/schema'
 import { useDiscFace } from './hooks/useDiscFace'
@@ -33,16 +33,23 @@ const FRICTION = 0.985
  * sitting as a token circle in the middle.
  */
 function CompactDisc({ item }: { item: CollectionItem }) {
-  const face = useDiscFace(item.discImageUrl || item.coverImageUrl || undefined, 'cd')
+  // The sleeve, not the Cover Art Archive's photograph of the disc — those
+  // are shot on white, and painting one edge to edge makes the paper into a
+  // ring around a shrunken disc.
+  const front = useDiscFace(item.coverImageUrl || undefined, 'cd', 'front')
+  const back = useDiscFace(undefined, 'cd', 'back')
   const R = 1.25
 
   return (
     <group>
-      <mesh>
+      {/* Two faces back to back rather than one double-sided plane: turning a
+          single plane over shows its own texture mirrored, so the lettering
+          came out backwards. */}
+      <mesh position={[0, 0, 0.002]}>
         <circleGeometry args={[R, 160]} />
         <meshPhysicalMaterial
-          key={face?.uuid ?? 'no-face'}
-          map={face ?? undefined}
+          key={front?.uuid ?? 'no-front'}
+          map={front ?? undefined}
           color="#ffffff"
           transparent
           metalness={0.4}
@@ -52,7 +59,22 @@ function CompactDisc({ item }: { item: CollectionItem }) {
           iridescence={0.45}
           iridescenceIOR={1.7}
           iridescenceThicknessRange={[180, 820]}
-          side={DoubleSide}
+        />
+      </mesh>
+      <mesh position={[0, 0, -0.002]} rotation={[0, Math.PI, 0]}>
+        <circleGeometry args={[R, 160]} />
+        <meshPhysicalMaterial
+          key={back?.uuid ?? 'no-back'}
+          map={back ?? undefined}
+          color="#ffffff"
+          transparent
+          metalness={0.9}
+          roughness={0.08}
+          clearcoat={1}
+          clearcoatRoughness={0.04}
+          iridescence={0.9}
+          iridescenceIOR={2}
+          iridescenceThicknessRange={[200, 900]}
         />
       </mesh>
     </group>
@@ -60,25 +82,33 @@ function CompactDisc({ item }: { item: CollectionItem }) {
 }
 
 function VinylRecord({ item }: { item: CollectionItem }) {
-  const face = useDiscFace(item.discImageUrl || item.coverImageUrl || undefined, 'vinyl')
+  // A picture disc is printed on both sides, so the record keeps its artwork
+  // when turned — but as its own face, so nothing reads backwards.
+  const front = useDiscFace(item.coverImageUrl || undefined, 'vinyl', 'front')
+  const back = useDiscFace(item.backCoverImageUrl || item.coverImageUrl || undefined, 'vinyl', 'back')
   const R = 1.45
 
   return (
     <group>
-      <mesh>
-        <circleGeometry args={[R, 160]} />
-        <meshPhysicalMaterial
-          key={face?.uuid ?? 'no-face'}
-          map={face ?? undefined}
-          color="#ffffff"
-          transparent
-          roughness={0.44}
-          metalness={0.15}
-          clearcoat={0.45}
-          clearcoatRoughness={0.4}
-          side={DoubleSide}
-        />
-      </mesh>
+      {[front, back].map((face, index) => (
+        <mesh
+          key={index}
+          position={[0, 0, index === 0 ? 0.002 : -0.002]}
+          rotation={index === 0 ? undefined : [0, Math.PI, 0]}
+        >
+          <circleGeometry args={[R, 160]} />
+          <meshPhysicalMaterial
+            key={face?.uuid ?? `no-face-${index}`}
+            map={face ?? undefined}
+            color="#ffffff"
+            transparent
+            roughness={0.44}
+            metalness={0.15}
+            clearcoat={0.45}
+            clearcoatRoughness={0.4}
+          />
+        </mesh>
+      ))}
     </group>
   )
 }
