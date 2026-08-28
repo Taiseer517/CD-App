@@ -8,9 +8,11 @@ import { extractDominantColor } from '../../services/dominantColor'
 import {
   getRelease,
   searchAlbums,
+  searchByBarcode,
   ServiceBusyError,
   type ReleaseSummary,
 } from '../../services/musicbrainz'
+import { BarcodeScanner, detectorSupported } from './BarcodeScanner'
 import { getFilm, isTmdbConfigured, searchFilms, type FilmSummary } from '../../services/tmdb'
 
 /** A result from either service, kept distinct so neither is mislabelled. */
@@ -55,6 +57,8 @@ export function AlbumSearch({ actionLabel, placeholder, onAdd }: AlbumSearchProp
   const [missingArt, setMissingArt] = useState<Set<string>>(new Set())
   const [duplicate, setDuplicate] = useState<{ hit: DuplicateMatch; pending: SearchHit } | null>(null)
   const collection = useCollectionStore((state) => state.items)
+  const [scanning, setScanning] = useState(false)
+  const [scanned, setScanned] = useState(0)
 
   async function handleSearch(event: React.FormEvent) {
     event.preventDefault()
@@ -81,6 +85,32 @@ export function AlbumSearch({ actionLabel, placeholder, onAdd }: AlbumSearchProp
       setError(
         err instanceof ServiceBusyError
           ? 'MusicBrainz is busy at the moment. What you are after is probably there — try again shortly.'
+          : err instanceof Error
+            ? err.message
+            : String(err),
+      )
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  /** A barcode names one pressing exactly, so it goes straight to results. */
+  async function handleBarcode(code: string) {
+    setSearching(true)
+    setError(null)
+    try {
+      const releases = await searchByBarcode(code)
+      if (releases.length === 0) {
+        setError(`Nothing is catalogued under barcode ${code}. Try the title instead.`)
+        setResults(null)
+        return
+      }
+      setResults(releases.map((release) => ({ kind: 'release' as const, release })))
+      setScanned((count) => count + 1)
+    } catch (err) {
+      setError(
+        err instanceof ServiceBusyError
+          ? 'MusicBrainz is busy at the moment. Try that one again shortly.'
           : err instanceof Error
             ? err.message
             : String(err),
@@ -169,7 +199,32 @@ export function AlbumSearch({ actionLabel, placeholder, onAdd }: AlbumSearchProp
         >
           {searching ? 'Searching…' : 'Search'}
         </button>
+        {detectorSupported() && (
+          <button
+            type="button"
+            onClick={() => setScanning((current) => !current)}
+            title="Read the barcode off the case with the camera"
+            className={`rounded-md border px-4 py-2 text-sm transition-colors ${
+              scanning
+                ? 'border-blood-500 text-bone-100'
+                : 'border-void-700 text-bone-300 hover:border-velvet-400'
+            }`}
+          >
+            Scan
+          </button>
+        )}
       </form>
+
+      {scanning && (
+        <div className="mt-4">
+          <BarcodeScanner onDetect={handleBarcode} onClose={() => setScanning(false)} />
+          {scanned > 0 && (
+            <p className="mt-2 text-xs text-velvet-300">
+              {scanned} {scanned === 1 ? 'case' : 'cases'} scanned this session.
+            </p>
+          )}
+        </div>
+      )}
 
       {error && <p className="mt-3 text-sm text-blood-300">{error}</p>}
 

@@ -233,6 +233,27 @@ export async function searchAlbums(freeText: string): Promise<ReleaseSummary[]> 
     .slice(0, 14)
 }
 
+/**
+ * Looks a pressing up by the barcode printed on its case.
+ *
+ * Stronger identification than any title search: a barcode distinguishes the
+ * US press of an album from the German one, which is exactly the distinction
+ * a collector holding the case cares about.
+ */
+export async function searchByBarcode(barcode: string): Promise<ReleaseSummary[]> {
+  const digits = barcode.replace(/\D/g, '')
+  if (!digits) return []
+
+  // Barcodes are catalogued both with and without the leading zero that
+  // distinguishes UPC from EAN, so ask for either.
+  const variants = new Set([digits, digits.replace(/^0+/, ''), `0${digits}`])
+  const query = [...variants].map((value) => `barcode:${value}`).join(' OR ')
+
+  const url = `${API}/release/?query=${encodeURIComponent(query)}&fmt=json&limit=25`
+  const data = await request<{ releases?: RawRelease[] }>(url)
+  return (data.releases ?? []).map(toSummary)
+}
+
 export async function getRelease(mbid: string): Promise<Partial<CollectionItemInput>> {
   const url = `${API}/release/${mbid}?inc=artist-credits+labels+recordings+genres&fmt=json`
   return mapReleaseToPatch(await request<RawRelease>(url))
