@@ -9,6 +9,7 @@ import { shelfIdFromParam, UNFILED_SLUG } from '../data/shelfRoutes'
 import { useReducedMotion } from '../hooks/useReducedMotion'
 import { layoutBookcase, reindexAfterMove } from '../scenes/layout'
 import { ShelfScene, type DropTarget } from '../scenes/ShelfScene'
+import { themeById } from '../scenes/themes'
 import { useWebglSupport } from '../scenes/hooks/useWebglSupport'
 import { useCollectionStore } from '../store/useCollectionStore'
 import { useUiStore } from '../store/useUiStore'
@@ -33,6 +34,7 @@ export function ShelfPage() {
   const searchQuery = useUiStore((state) => state.searchQuery)
   const cinematicEffects = useUiStore((state) => state.cinematicEffects)
   const setCinematicEffects = useUiStore((state) => state.setCinematicEffects)
+  const theme = themeById(useUiStore((state) => state.theme))
 
   const webglSupported = useWebglSupport()
   const reducedMotion = useReducedMotion()
@@ -190,6 +192,7 @@ export function ShelfPage() {
               searchActive={searchActive}
               cinematicEffects={cinematicEffects}
               reducedMotion={reducedMotion}
+              theme={theme}
               onSelect={(item) => setSelectedId((current) => (current === item.id ? null : item.id))}
               onMove={handleMove}
             />

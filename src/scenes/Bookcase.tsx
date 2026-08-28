@@ -5,12 +5,9 @@ import { CROWN_HEIGHT, PLANK_DEPTH, PLANK_THICKNESS, SHELF_INSET } from './dimen
 import type { BookcaseLayout, RowLayout } from './layout'
 import { Candle } from './Candle'
 import { usePlaqueTexture } from './hooks/usePlaqueTexture'
+import type { ShelfTheme } from './themes'
 import { MediaCase } from './MediaCase'
 
-const OAK = '#3a2c48'
-const OAK_DARK = '#241a2e'
-const OAK_LIGHT = '#503d63'
-const BRASS = '#8a6f45'
 
 /** Beyond this, candles still burn but stop casting their own light. */
 const MAX_LIT_CANDLES = 3
@@ -29,18 +26,26 @@ function archShape(halfWidth: number, springing: number, rise: number): Shape {
 }
 
 /** Blind arcading carved into an upright — the repeated motif of a choir stall. */
-function CarvedPanel({ position, height }: { position: [number, number, number]; height: number }) {
+function CarvedPanel({
+  position,
+  height,
+  theme,
+}: {
+  position: [number, number, number]
+  height: number
+  theme: ShelfTheme
+}) {
   const shape = useMemo(() => archShape(0.085, height * 0.42, height * 0.3), [height])
   return (
     <mesh position={position}>
       <extrudeGeometry args={[shape, { depth: 0.03, bevelEnabled: true, bevelSize: 0.008, bevelThickness: 0.008, bevelSegments: 1 }]} />
-      <meshLambertMaterial color={OAK_LIGHT} />
+      <meshLambertMaterial color={theme.woodLight} />
     </mesh>
   )
 }
 
 /** The crown: a great traceried arch with a rose window at its head. */
-function Crown({ width, y }: { width: number; y: number }) {
+function Crown({ width, y, theme }: { width: number; y: number; theme: ShelfTheme }) {
   const rise = CROWN_HEIGHT - 0.2
   const outer = useMemo(() => archShape(width / 2, 0.1, rise), [width, rise])
   const inner = useMemo(() => archShape(width / 2 - 0.16, 0.08, rise - 0.2), [width, rise])
@@ -49,11 +54,11 @@ function Crown({ width, y }: { width: number; y: number }) {
     <group position={[0, y, -PLANK_DEPTH / 2 + 0.06]}>
       <mesh>
         <extrudeGeometry args={[outer, { depth: 0.14, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.02, bevelSegments: 2 }]} />
-        <meshStandardMaterial color={OAK} roughness={0.8} metalness={0.06} />
+        <meshStandardMaterial color={theme.wood} roughness={0.8} metalness={0.06} />
       </mesh>
       <mesh position={[0, 0.02, 0.05]}>
         <extrudeGeometry args={[inner, { depth: 0.12, bevelEnabled: false }]} />
-        <meshStandardMaterial color={OAK_DARK} roughness={0.9} />
+        <meshStandardMaterial color={theme.woodDark} roughness={0.9} />
       </mesh>
 
       {/* Rose window: a hub with radiating spokes, gilt against the dark */}
@@ -61,12 +66,12 @@ function Crown({ width, y }: { width: number; y: number }) {
         {/* Uplight so the tracery is legible instead of a dark silhouette */}
         <mesh>
           <ringGeometry args={[0.12, 0.16, 32]} />
-          <meshStandardMaterial color={BRASS} roughness={0.45} metalness={0.55} emissive="#3a1d5c" emissiveIntensity={0.25} />
+          <meshStandardMaterial color={theme.metal} roughness={0.45} metalness={0.55} emissive={theme.rimColor} emissiveIntensity={0.25} />
         </mesh>
         {Array.from({ length: 8 }, (_, index) => (
           <mesh key={index} rotation={[0, 0, (index * Math.PI) / 4]}>
             <planeGeometry args={[0.28, 0.011]} />
-            <meshStandardMaterial color={BRASS} roughness={0.5} metalness={0.5} />
+            <meshStandardMaterial color={theme.metal} roughness={0.5} metalness={0.5} />
           </mesh>
         ))}
         <mesh>
@@ -84,11 +89,13 @@ function ShelfPlaque({
   continued,
   y,
   x,
+  theme,
 }: {
   name: string
   continued: boolean
   y: number
   x: number
+  theme: ShelfTheme
 }) {
   const texture = usePlaqueTexture(name, continued)
   const width = 0.94
@@ -101,7 +108,7 @@ function ShelfPlaque({
         <meshStandardMaterial
           key={texture?.uuid ?? 'no-plaque'}
           map={texture ?? undefined}
-          color={texture ? '#ffffff' : BRASS}
+          color={texture ? '#ffffff' : theme.metal}
           roughness={0.42}
           metalness={0.62}
         />
@@ -118,16 +125,16 @@ function ShelfPlaque({
 }
 
 /** A turned finial capping each upright. */
-function Finial({ x, y }: { x: number; y: number }) {
+function Finial({ x, y, theme }: { x: number; y: number; theme: ShelfTheme }) {
   return (
     <group position={[x, y, 0]}>
       <mesh position={[0, 0.05, 0]}>
         <cylinderGeometry args={[0.055, 0.085, 0.1, 10]} />
-        <meshStandardMaterial color={OAK_LIGHT} roughness={0.72} />
+        <meshStandardMaterial color={theme.woodLight} roughness={0.72} />
       </mesh>
       <mesh position={[0, 0.14, 0]}>
         <coneGeometry args={[0.07, 0.16, 10]} />
-        <meshStandardMaterial color={OAK_LIGHT} roughness={0.7} metalness={0.08} />
+        <meshStandardMaterial color={theme.woodLight} roughness={0.7} metalness={0.08} />
       </mesh>
     </group>
   )
@@ -135,6 +142,7 @@ function Finial({ x, y }: { x: number; y: number }) {
 
 interface BookcaseProps {
   layout: BookcaseLayout
+  theme: ShelfTheme
   /**
    * Vertical band, in bookcase-local coordinates, that the camera can see.
    * Rows outside it are skipped entirely — with several hundred records the
@@ -160,6 +168,7 @@ function ShelfRow({
   onDragStart,
   dropTarget,
   lit,
+  theme,
 }: Omit<BookcaseProps, 'layout' | 'band'> & { row: RowLayout; width: number; lit: boolean }) {
   const showDropMarker =
     dropTarget !== null &&
@@ -183,13 +192,13 @@ function ShelfRow({
     <group>
       <mesh position={[0, row.plankY, 0]}>
         <boxGeometry args={[width, PLANK_THICKNESS, PLANK_DEPTH]} />
-        <meshLambertMaterial color={OAK} />
+        <meshLambertMaterial color={theme.wood} />
       </mesh>
       {/* Moulded front edge, which catches the candlelight and gives each
           shelf a readable horizon line in the dark. */}
       <mesh position={[0, row.plankY + PLANK_THICKNESS / 2 - 0.005, PLANK_DEPTH / 2 + 0.012]}>
         <boxGeometry args={[width, 0.05, 0.03]} />
-        <meshStandardMaterial color={OAK_LIGHT} roughness={0.55} metalness={0.22} />
+        <meshStandardMaterial color={theme.woodLight} roughness={0.55} metalness={0.22} />
       </mesh>
 
       <ShelfPlaque
@@ -197,15 +206,17 @@ function ShelfRow({
         continued={row.continued}
         y={row.plankY - 0.005}
         x={-width / 2 + 0.62}
+        theme={theme}
       />
 
-      {showCandles && (
+      {showCandles && theme.candles && (
         <Candle
           position={[candleSlot, row.plankY + PLANK_THICKNESS / 2, 0.24]}
           height={Math.min(0.3, row.caseHeight * 0.42)}
           seed={row.startIndex + (row.shelfId?.length ?? 3)}
           reducedMotion={reducedMotion}
           lit={lit}
+          color={theme.candleColor}
         />
       )}
 
@@ -233,6 +244,7 @@ function ShelfRow({
 }
 
 export function Bookcase({ layout, band, ...rowProps }: BookcaseProps) {
+  const { theme } = rowProps
   const { rows, width, height } = layout
   const outerWidth = width + 0.66
   const centreY = -height / 2
@@ -245,18 +257,19 @@ export function Bookcase({ layout, band, ...rowProps }: BookcaseProps) {
       {/* Back panel */}
       <mesh position={[0, centreY, -PLANK_DEPTH / 2 - 0.01]}>
         <planeGeometry args={[outerWidth, height + 0.5]} />
-        <meshLambertMaterial color={OAK_DARK} />
+        <meshLambertMaterial color={theme.woodDark} />
       </mesh>
 
       {[-1, 1].map((side) => (
         <group key={side}>
           <mesh position={[(side * outerWidth) / 2, centreY, 0]}>
             <boxGeometry args={[0.33, height + 0.5, PLANK_DEPTH]} />
-            <meshLambertMaterial color={OAK} />
+            <meshLambertMaterial color={theme.wood} />
           </mesh>
           {Array.from({ length: panelCount }, (_, index) => (
             <CarvedPanel
               key={index}
+              theme={theme}
               position={[
                 (side * outerWidth) / 2,
                 centreY + height / 2 - 0.46 - index * (height / panelCount),
@@ -265,20 +278,20 @@ export function Bookcase({ layout, band, ...rowProps }: BookcaseProps) {
               height={0.34}
             />
           ))}
-          <Finial x={(side * outerWidth) / 2} y={0.3} />
+          <Finial x={(side * outerWidth) / 2} y={0.3} theme={theme} />
         </group>
       ))}
 
       {/* Cornice */}
       <mesh position={[0, 0.2, 0.02]}>
         <boxGeometry args={[outerWidth + 0.26, 0.17, PLANK_DEPTH + 0.14]} />
-        <meshLambertMaterial color={OAK} />
+        <meshLambertMaterial color={theme.wood} />
       </mesh>
       <mesh position={[0, 0.09, PLANK_DEPTH / 2 + 0.07]}>
         <boxGeometry args={[outerWidth + 0.26, 0.05, 0.04]} />
-        <meshStandardMaterial color={BRASS} roughness={0.5} metalness={0.5} />
+        <meshStandardMaterial color={theme.metal} roughness={0.5} metalness={0.5} />
       </mesh>
-      <Crown width={outerWidth} y={0.28} />
+      {theme.roseWindow && <Crown width={outerWidth} y={0.28} theme={theme} />}
       {/* One grazing light across the cornice and crown, from below */}
       <pointLight
         position={[0, 0.42, PLANK_DEPTH / 2 + 0.9]}
@@ -291,7 +304,7 @@ export function Bookcase({ layout, band, ...rowProps }: BookcaseProps) {
       {/* Plinth */}
       <mesh position={[0, centreY - height / 2 - 0.12, 0.02]}>
         <boxGeometry args={[outerWidth + 0.16, 0.22, PLANK_DEPTH + 0.1]} />
-        <meshLambertMaterial color={OAK} />
+        <meshLambertMaterial color={theme.wood} />
       </mesh>
 
       {rows.map((row, index) => {

@@ -188,6 +188,28 @@ if ((await discTrigger.count()) > 0) {
   check('the disc viewer has a trigger', false, 'no "See the…" button found')
 }
 
+console.log('\nDecor themes')
+await page.goto(BASE + '#/shelf', { waitUntil: 'load' })
+await page.waitForTimeout(2200)
+const swatches = await page.locator('fieldset button').count()
+check('every theme is offered as a swatch', swatches >= 4, `${swatches} themes`)
+
+// Prove the choice reaches the 3D scene, not just the picker. Screenshots
+// are compared rather than the canvas read back: a WebGL buffer is blank
+// after the frame unless preserveDrawingBuffer is on, which costs memory
+// for nothing but this test.
+const themeShots = []
+for (const name of ['Cathedral', 'Crypt']) {
+  await page.goto(BASE + '#/shelf', { waitUntil: 'load' })
+  await page.waitForTimeout(1600)
+  await page.locator(`button:has-text("${name}")`).first().click()
+  await page.waitForTimeout(500)
+  await page.locator('a[aria-label^="Open the"]').first().click()
+  await page.waitForTimeout(10000)
+  themeShots.push((await page.locator('canvas').screenshot()).toString('base64').slice(0, 4000))
+}
+check('switching theme changes what is rendered', themeShots[0] !== themeShots[1])
+
 console.log('\nAttribution')
 const footer = await page.locator('footer').innerText()
 check('sources are credited', /MusicBrainz/.test(footer) && /Cover Art Archive/.test(footer))

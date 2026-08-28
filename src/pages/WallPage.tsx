@@ -2,15 +2,19 @@ import { useMemo, useState } from 'react'
 import { PageTransition } from '../components/layout/PageTransition'
 import { ArchClip } from '../components/wall/ArchClip'
 import { ShelfAlcove } from '../components/wall/ShelfAlcove'
+import { ThemePicker } from '../components/wall/ThemePicker'
 import { UNFILED_SLUG } from '../data/shelfRoutes'
 import type { CollectionItem } from '../data/schema'
 import { useCollectionStore } from '../store/useCollectionStore'
+import { useUiStore } from '../store/useUiStore'
 
 export function WallPage() {
   const items = useCollectionStore((state) => state.items)
   const shelves = useCollectionStore((state) => state.shelves)
   const addShelf = useCollectionStore((state) => state.addShelf)
   const [newName, setNewName] = useState('')
+  const theme = useUiStore((state) => state.theme)
+  const setTheme = useUiStore((state) => state.setTheme)
 
   const owned = useMemo(() => items.filter((item) => !item.wishlist), [items])
 
@@ -78,6 +82,8 @@ export function WallPage() {
             />
           )}
         </div>
+
+        <ThemePicker value={theme} onChange={setTheme} />
 
         <form onSubmit={handleCreate} className="mx-auto flex max-w-sm gap-2">
           <input

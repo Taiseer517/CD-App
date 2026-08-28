@@ -15,6 +15,8 @@ interface CandleProps {
    * neighbours and carry only the flame.
    */
   lit?: boolean
+  /** Flame colour, so a crypt can burn green where a cathedral burns amber. */
+  color?: string
 }
 
 const WAX = '#d8cbb4'
@@ -34,6 +36,7 @@ export function Candle({
   seed = 0,
   reducedMotion = false,
   lit = true,
+  color = FLAME,
 }: CandleProps) {
   const flameRef = useRef<Mesh>(null)
   const glowRef = useRef<Mesh>(null)
@@ -77,19 +80,19 @@ export function Candle({
 
       <mesh ref={flameRef} position={[0, flameY, 0]}>
         <sphereGeometry args={[0.028, 10, 12]} />
-        <meshBasicMaterial color={FLAME} transparent opacity={0.95} />
+        <meshBasicMaterial color={color} transparent opacity={0.95} />
       </mesh>
       {/* Halo, additively blended so it reads as light rather than a ball */}
       <mesh ref={glowRef} position={[0, flameY, 0]}>
         <sphereGeometry args={[0.075, 10, 10]} />
-        <meshBasicMaterial color="#ff9a3c" transparent opacity={0.16} blending={AdditiveBlending} depthWrite={false} />
+        <meshBasicMaterial color={color} transparent opacity={0.16} blending={AdditiveBlending} depthWrite={false} />
       </mesh>
 
       {lit && (
         <pointLight
           ref={lightRef}
           position={[0, flameY + 0.02, 0.08]}
-          color="#ffa851"
+          color={color}
           intensity={2.4}
           distance={3.2}
           decay={1.9}

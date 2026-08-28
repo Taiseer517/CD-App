@@ -16,6 +16,7 @@ import {
 } from 'three'
 import type { CollectionItem, Shelf } from '../data/schema'
 import { deriveAmbience } from './ambience'
+import type { ShelfTheme } from './themes'
 import { Bookcase } from './Bookcase'
 import { PLANK_DEPTH } from './dimensions'
 import { layoutBookcase, rowAt, slotIndexAt, type BookcaseLayout } from './layout'
@@ -35,6 +36,7 @@ interface ShelfSceneProps {
   focusShelfId?: string | null
   cinematicEffects: boolean
   reducedMotion: boolean
+  theme: ShelfTheme
   onSelect: (item: CollectionItem) => void
   onMove: (itemId: string, target: DropTarget) => void
 }
@@ -282,6 +284,7 @@ function SceneContents({
   selectedId,
   searchActive,
   reducedMotion,
+  theme,
   scrollY,
   onSelect,
   onMove,
@@ -291,7 +294,19 @@ function SceneContents({
   onLayout: (layout: BookcaseLayout) => void
 }) {
   const layout = useMemo(() => layoutBookcase(items, shelves), [items, shelves])
-  const ambience = useMemo(() => deriveAmbience(items), [items])
+  const ambience = useMemo(() => {
+    const mood = deriveAmbience(items)
+    return {
+      ...mood,
+      keyColor: theme.keyColor,
+      rimColor: theme.rimColor,
+      keyIntensity: theme.keyIntensity,
+      // The theme sets the room; the genre still shifts how close the air
+      // feels inside it, so a doom shelf stays heavier than a gothic-rock one.
+      fogNear: (mood.fogNear / 18) * theme.fogNear,
+      fogFar: (mood.fogFar / 44) * theme.fogFar,
+    }
+  }, [items, theme])
   const groupRef = useRef<Group>(null)
 
   const [dragging, setDragging] = useState<{ item: CollectionItem; w: number; h: number } | null>(null)
@@ -331,13 +346,13 @@ function SceneContents({
 
   return (
     <>
-      <color attach="background" args={['#07050a']} />
-      <fog attach="fog" args={['#07050a', ambience.fogNear, ambience.fogFar]} />
+      <color attach="background" args={[theme.background]} />
+      <fog attach="fog" args={[theme.background, ambience.fogNear, ambience.fogFar]} />
 
       {/* Dark is the mood, but the artwork is the point — the sleeves have to
           read clearly first and be atmospheric second. */}
-      <ambientLight intensity={0.85} />
-      <hemisphereLight args={[ambience.keyColor, '#171020', 0.75]} />
+      <ambientLight intensity={theme.ambient} />
+      <hemisphereLight args={[ambience.keyColor, theme.woodDark, 0.75]} />
       <pointLight
         position={[2.6, centreY + 1.1, 5.4]}
         intensity={ambience.keyIntensity}
@@ -361,6 +376,7 @@ function SceneContents({
         <Bookcase
           layout={layout}
           band={band}
+          theme={theme}
           selectedId={selectedId}
           draggingId={dragging?.item.id ?? null}
           reducedMotion={reducedMotion}
