@@ -20,13 +20,16 @@ function duration(ms: number | null): string {
 interface CaseDetailPanelProps {
   item: CollectionItem | null
   onClose: () => void
+  /** Shown when nothing is selected, so the column is never simply blank. */
+  shelfName?: string
+  total?: number
 }
 
 /**
  * Details live in an HTML panel rather than as 3D text: at shelf distance,
  * rendered type is unreadable, and a tracklist needs to be selectable.
  */
-export function CaseDetailPanel({ item, onClose }: CaseDetailPanelProps) {
+export function CaseDetailPanel({ item, onClose, shelfName, total }: CaseDetailPanelProps) {
   const updateItem = useCollectionStore((state) => state.updateItem)
   const shelves = useCollectionStore((state) => state.shelves)
   const moveItemToShelf = useCollectionStore((state) => state.moveItemToShelf)
@@ -34,18 +37,35 @@ export function CaseDetailPanel({ item, onClose }: CaseDetailPanelProps) {
   const [viewingDisc, setViewingDisc] = useState(false)
 
   return (
-    <AnimatePresence>
-      {item && (
+    <AnimatePresence mode="wait">
+      {!item ? (
+        <motion.aside
+          key="empty"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="rounded-xl border border-void-700 bg-void-900/40 p-6 text-center"
+        >
+          <p className="font-display text-sm uppercase tracking-[0.18em] text-velvet-300">
+            {shelfName ?? 'This shelf'}
+          </p>
+          <p className="mt-2 text-sm text-bone-400">
+            {total === 0
+              ? 'Nothing on it yet.'
+              : `${total} ${total === 1 ? 'record' : 'records'}. Take one down to look at it.`}
+          </p>
+        </motion.aside>
+      ) : (
         <motion.aside
           key={item.id}
-          initial={{ x: 40, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          exit={{ x: 40, opacity: 0 }}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
           transition={{ type: 'spring', stiffness: 260, damping: 30 }}
-          className="pointer-events-auto absolute right-0 top-0 z-10 flex h-full w-full max-w-sm flex-col border-l border-void-700 bg-void-950/92 backdrop-blur-md"
+          className="flex max-h-[78vh] flex-col overflow-hidden rounded-xl border border-void-700 bg-void-950/92"
           style={
             item.dominantColor
-              ? { boxShadow: `inset 3px 0 24px -12px ${item.dominantColor}` }
+              ? { boxShadow: `inset 0 3px 26px -14px ${item.dominantColor}` }
               : undefined
           }
         >

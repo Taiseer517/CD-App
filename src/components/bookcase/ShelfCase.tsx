@@ -159,7 +159,7 @@ export function ShelfCase({ items, theme, selectedId, onSelect }: ShelfCaseProps
     <div
       className="relative mx-auto"
       style={{
-        width: `min(100%, calc(min(62vh, 760px) * 1000 / ${frameHeight}))`,
+        width: `min(100%, calc(min(74vh, 900px) * 1000 / ${frameHeight}))`,
         aspectRatio: `1000 / ${frameHeight}`,
         perspective: '1100px',
       }}

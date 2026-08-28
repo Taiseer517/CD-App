@@ -6,6 +6,7 @@ import { ThemePicker } from '../components/wall/ThemePicker'
 import { UNFILED_SLUG } from '../data/shelfRoutes'
 import type { CollectionItem } from '../data/schema'
 import { useCollectionStore } from '../store/useCollectionStore'
+import { themeById } from '../scenes/themes'
 import { useUiStore } from '../store/useUiStore'
 
 export function WallPage() {
@@ -13,7 +14,8 @@ export function WallPage() {
   const shelves = useCollectionStore((state) => state.shelves)
   const addShelf = useCollectionStore((state) => state.addShelf)
   const [newName, setNewName] = useState('')
-  const theme = useUiStore((state) => state.theme)
+  const themeId = useUiStore((state) => state.theme)
+  const theme = themeById(themeId)
   const setTheme = useUiStore((state) => state.setTheme)
 
   const owned = useMemo(() => items.filter((item) => !item.wishlist), [items])
@@ -48,9 +50,11 @@ export function WallPage() {
     <PageTransition>
       <ArchClip />
 
-      <div className="stone-wall -mx-6 -mt-10 space-y-10 rounded-b-2xl px-6 pb-12 pt-10 sm:px-10">
+      {/* The wall runs the full width of the window: a wall inset in a page
+          with margins either side is a poster of a wall. */}
+      <div className="stone-wall -mx-6 -mt-10 space-y-10 px-6 pb-14 pt-10 sm:px-10 lg:px-14">
         <header className="text-center">
-          <h2 className="font-display text-2xl tracking-wide text-bone-100 sm:text-3xl">
+          <h2 className="font-blackletter text-3xl tracking-wide text-bone-100 sm:text-4xl">
             The Wall
           </h2>
           <p className="mx-auto mt-2 max-w-md text-sm text-bone-400">
@@ -58,7 +62,9 @@ export function WallPage() {
           </p>
         </header>
 
-        <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
+        {/* Fewer, larger niches. Four to a row made each one too small to
+            see what was standing in it. */}
+        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3">
           {[...shelves]
             .sort((a, b) => a.order - b.order)
             .map((shelf, index) => (
@@ -69,6 +75,7 @@ export function WallPage() {
                 count={(grouped.get(shelf.id) ?? []).length}
                 items={grouped.get(shelf.id) ?? []}
                 index={index}
+                theme={theme}
               />
             ))}
 
@@ -79,11 +86,12 @@ export function WallPage() {
               count={unfiled.length}
               items={unfiled}
               index={shelves.length}
+              theme={theme}
             />
           )}
         </div>
 
-        <ThemePicker value={theme} onChange={setTheme} />
+        <ThemePicker value={themeId} onChange={setTheme} />
 
         <form onSubmit={handleCreate} className="mx-auto flex max-w-sm gap-2">
           <input

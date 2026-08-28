@@ -24,7 +24,8 @@ const browser = await chromium.launch({
   args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
 })
 // A fresh context starts with empty storage, so this exercises a first run.
-const page = await browser.newPage({ viewport: { width: 1440, height: 950 } })
+const context = await browser.newContext({ viewport: { width: 1440, height: 950 } })
+const page = await context.newPage()
 
 const problems = []
 page.on('pageerror', (error) => problems.push(`pageerror: ${error.message.split('\n')[0]}`))
@@ -111,23 +112,38 @@ for (const name of ['Cathedral', 'Crypt']) {
 check('switching theme changes how the case is drawn', themeShots[0] !== themeShots[1])
 
 console.log('\nSound')
-await page.goto(BASE + '#/shelf', { waitUntil: 'load' })
-await page.waitForTimeout(2000)
+// Counted from outside the app rather than by asking the module: importing
+// it inside page.evaluate returns a second instance with its own state, and
+// that reported the ambience running when it was not.
+const audioPage = await context.newPage()
+await audioPage.addInitScript(() => {
+  window.__audio = { contexts: 0, oscillators: 0 }
+  const Original = window.AudioContext
+  window.AudioContext = class extends Original {
+    constructor(...args) {
+      window.__audio.contexts++
+      super(...args)
+      const create = this.createOscillator.bind(this)
+      this.createOscillator = () => {
+        window.__audio.oscillators++
+        return create()
+      }
+    }
+  }
+})
+await audioPage.goto(BASE + '#/shelf', { waitUntil: 'load' })
+await audioPage.waitForTimeout(2500)
 
-// Nothing may be making noise before she asks for it.
-const quiet = await page.evaluate(async () => {
-  const mod = await import('/src/audio/archiveAudio.ts')
-  return mod.archiveAudio.isRunning()
-}).catch(() => false)
-check('the room is silent until asked', quiet === false)
+const beforeSound = await audioPage.evaluate(() => window.__audio)
+check('nothing opens an audio context before it is asked to', beforeSound.contexts === 0)
 
-await page.locator('button:has-text("Sound off")').click().catch(() => {})
-await page.waitForTimeout(1600)
-const playing = await page.evaluate(async () => {
-  const mod = await import('/src/audio/archiveAudio.ts')
-  return mod.archiveAudio.isRunning()
-}).catch(() => false)
-check('the toggle starts the ambience', playing === true)
+await audioPage.locator('nav button[aria-pressed]').click()
+await audioPage.waitForTimeout(9000)
+const afterSound = await audioPage.evaluate(() => window.__audio)
+check('the toggle starts the ambience', afterSound.contexts === 1)
+// Three of the voices are the drone; anything beyond that is a bell struck.
+check('bells are ringing, not just a drone', afterSound.oscillators > 3, `${afterSound.oscillators} voices`)
+await audioPage.close()
 
 console.log('\nAttribution')
 const footer = await page.locator('footer').innerText()

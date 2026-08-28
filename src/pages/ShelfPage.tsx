@@ -155,14 +155,24 @@ export function ShelfPage() {
             }
           />
         ) : (
-          <div className="relative">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
             <ShelfCase
               items={shown}
               theme={theme}
               selectedId={selectedId}
               onSelect={(item) => setSelectedId((current) => (current === item.id ? null : item.id))}
             />
-            <CaseDetailPanel item={selected} onClose={() => setSelectedId(null)} />
+
+            {/* Beside the case rather than over it: covering the shelf to read
+                about one record hides the thing you were choosing from. */}
+            <div className="lg:sticky lg:top-6">
+              <CaseDetailPanel
+                item={selected}
+                onClose={() => setSelectedId(null)}
+                shelfName={shelfName}
+                total={onShelf.length}
+              />
+            </div>
           </div>
         )}
       </div>

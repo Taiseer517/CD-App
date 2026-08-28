@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { safeImageUrl } from '../../data/safeUrl'
 import type { CollectionItem } from '../../data/schema'
+import type { ShelfTheme } from '../../scenes/themes'
 import { ARCH_CLIP_ID, ARCH_INNER_CLIP_ID } from './ArchClip'
 
 interface ShelfAlcoveProps {
@@ -10,6 +11,8 @@ interface ShelfAlcoveProps {
   count: number
   items: CollectionItem[]
   index: number
+  /** The wall wears the same room as the shelves behind it. */
+  theme: ShelfTheme
 }
 
 /**
@@ -20,9 +23,9 @@ interface ShelfAlcoveProps {
  * single flat cutout reads as a sticker, while the offset between them gives
  * the wall its thickness.
  */
-export function ShelfAlcove({ to, name, count, items, index }: ShelfAlcoveProps) {
-  const standing = items.slice(0, 6)
-  const glow = items.find((item) => item.dominantColor)?.dominantColor ?? '#8a5cc0'
+export function ShelfAlcove({ to, name, count, items, index, theme }: ShelfAlcoveProps) {
+  const standing = items.slice(0, 5)
+  const glow = items.find((item) => item.dominantColor)?.dominantColor ?? theme.candleColor
 
   return (
     <motion.div
@@ -33,9 +36,13 @@ export function ShelfAlcove({ to, name, count, items, index }: ShelfAlcoveProps)
       <Link to={to} className="group block focus:outline-none" aria-label={`Open the ${name} shelf`}>
         {/* Outer stone surround */}
         <div
-          className="relative aspect-[5/6] bg-gradient-to-b from-[#3b2d4c] via-[#2a2038] to-[#1b1426] p-[7px] transition-shadow duration-500 group-hover:shadow-[0_0_38px_-10px_var(--alcove-glow)] group-focus-visible:shadow-[0_0_38px_-10px_var(--alcove-glow)]"
+          className="relative aspect-[4/5] p-[7px] transition-shadow duration-500 group-hover:shadow-[0_0_38px_-10px_var(--alcove-glow)] group-focus-visible:shadow-[0_0_38px_-10px_var(--alcove-glow)]"
           style={
-            { clipPath: `url(#${ARCH_CLIP_ID})`, '--alcove-glow': glow } as React.CSSProperties
+            {
+              clipPath: `url(#${ARCH_CLIP_ID})`,
+              '--alcove-glow': glow,
+              background: `linear-gradient(180deg, ${theme.woodLight} 0%, ${theme.wood} 55%, ${theme.woodDark} 100%)`,
+            } as React.CSSProperties
           }
         >
           {/* Inner reveal — the recess itself */}
@@ -43,7 +50,12 @@ export function ShelfAlcove({ to, name, count, items, index }: ShelfAlcoveProps)
             className="relative h-full w-full overflow-hidden"
             style={{ clipPath: `url(#${ARCH_INNER_CLIP_ID})` }}
           >
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_112%,#3a2a4e_0%,#170f22_54%,#0a070e_100%)]" />
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `radial-gradient(ellipse at 50% 112%, ${theme.wood} 0%, ${theme.woodDark} 52%, #07050a 100%)`,
+              }}
+            />
 
             {/* The record's own colour, welling up out of the niche */}
             <div
@@ -55,7 +67,7 @@ export function ShelfAlcove({ to, name, count, items, index }: ShelfAlcoveProps)
             <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-black/75 to-transparent" />
 
             {/* Records standing on the plank */}
-            <div className="absolute inset-x-0 bottom-[19%] flex items-end justify-center gap-[3px] px-[11%]">
+            <div className="absolute inset-x-0 bottom-[19%] flex items-end justify-center gap-[4px] px-[13%]">
               {standing.map((item, position) => (
                 <motion.div
                   key={item.id}
@@ -84,17 +96,26 @@ export function ShelfAlcove({ to, name, count, items, index }: ShelfAlcoveProps)
             </div>
 
             {/* The plank, with its lit front edge */}
-            <div className="absolute inset-x-[6%] bottom-[16.5%] h-[7px] rounded-[2px] bg-gradient-to-b from-[#5a4770] via-[#33254a] to-[#1c1329]" />
+            <div
+              className="absolute inset-x-[6%] bottom-[16.5%] h-[7px] rounded-[2px]"
+              style={{
+                background: `linear-gradient(180deg, ${theme.woodLight}, ${theme.wood} 45%, ${theme.woodDark})`,
+              }}
+            />
 
             {/* Candle */}
             <div className="absolute bottom-[3%] left-1/2 -translate-x-1/2">
               <div className="mx-auto h-7 w-[8px] rounded-t-[2px] bg-gradient-to-b from-[#efe3ca] via-[#cabfa6] to-[#8e836d]" />
               <motion.div
-                className="absolute -top-[9px] left-1/2 h-[13px] w-[6px] -translate-x-1/2 rounded-[50%] bg-[#ffbc6a]"
+                className="absolute -top-[9px] left-1/2 h-[13px] w-[6px] -translate-x-1/2 rounded-[50%]"
+                style={{ background: theme.candleColor }}
                 animate={{ scaleY: [1, 1.14, 0.94, 1.08, 1], opacity: [0.9, 1, 0.86, 1, 0.9] }}
                 transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
               />
-              <div className="absolute -top-10 left-1/2 h-20 w-20 -translate-x-1/2 rounded-full bg-[#ff9a3c] opacity-30 blur-2xl transition-opacity duration-700 group-hover:opacity-70" />
+              <div
+                className="absolute -top-10 left-1/2 h-20 w-20 -translate-x-1/2 rounded-full opacity-30 blur-2xl transition-opacity duration-700 group-hover:opacity-70"
+                style={{ background: theme.candleColor }}
+              />
             </div>
 
             {count === 0 && (
@@ -110,7 +131,7 @@ export function ShelfAlcove({ to, name, count, items, index }: ShelfAlcoveProps)
         {/* Brass nameplate, screwed to the wall beneath the niche */}
         <div className="relative mx-auto -mt-4 w-[88%]">
           <div className="relative rounded-[3px] border border-[#4a3c22] bg-gradient-to-b from-[#9a7c4d] via-[#75603a] to-[#4e3d24] px-3 py-1.5 text-center shadow-[0_5px_12px_-4px_rgba(0,0,0,0.95)] transition-[filter] duration-500 group-hover:brightness-115">
-            <span className="block truncate font-display text-[0.68rem] uppercase tracking-[0.18em] text-[#f4e9d0]">
+            <span className="block truncate font-display text-[0.74rem] uppercase tracking-[0.16em] text-[#f4e9d0]">
               {name}
             </span>
             {[0, 1].map((side) => (
