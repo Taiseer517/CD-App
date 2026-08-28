@@ -1,116 +1,144 @@
 import { animated, useSpring } from '@react-spring/three'
 import { useFrame } from '@react-three/fiber'
-import { useMemo, useRef, useState } from 'react'
-import { DoubleSide, type Group, type Mesh } from 'three'
+import { useRef, useState } from 'react'
+import { DoubleSide, type Group } from 'three'
 import type { CollectionItem } from '../data/schema'
-import { CASE_DIMENSIONS } from './dimensions'
 import { useLabelTexture } from './hooks/useLabelTexture'
 import { useLazyTexture } from './hooks/useLazyTexture'
+import type { PlacedCase } from './layout'
 
 const CASE_BODY: Record<CollectionItem['type'], string> = {
-  cd: '#15111b',
-  dvd: '#120c1a',
-  vinyl: '#0f0c13',
+  cd: '#17121e',
+  dvd: '#130d1c',
+  vinyl: '#100d15',
 }
 
 const FALLBACK_GLOW = '#c22f3f'
 
 interface MediaCaseProps {
-  item: CollectionItem
-  position: [number, number, number]
+  placed: PlacedCase
   selected: boolean
   dragging: boolean
-  dimmed: boolean
+  reducedMotion: boolean
   onSelect: (item: CollectionItem) => void
   onDragStart: (item: CollectionItem, event: PointerEvent) => void
 }
 
-/**
- * The disc inside a jewel case. Slides out and turns when the case is opened,
- * catching the light off-axis the way a real CD does.
- */
-function Disc({ item, open }: { item: CollectionItem; open: boolean }) {
-  const meshRef = useRef<Mesh>(null)
+/** The disc, sliding out of a jewel case and turning under the light. */
+function Disc({
+  item,
+  open,
+  size,
+  reducedMotion,
+}: {
+  item: CollectionItem
+  open: boolean
+  size: number
+  reducedMotion: boolean
+}) {
+  const spinRef = useRef<Group>(null)
   const texture = useLazyTexture(item.discImageUrl || undefined)
-  const radius = CASE_DIMENSIONS.cd.height * 0.42
+  const radius = size * 0.44
 
   const spring = useSpring({
-    x: open ? CASE_DIMENSIONS.cd.width * 0.78 : 0,
-    opacity: open ? 1 : 0,
-    config: { tension: 170, friction: 26 },
+    x: open ? size * 0.86 : 0,
+    tilt: open ? -0.22 : 0,
+    config: { tension: 150, friction: 24 },
   })
 
   useFrame((_, delta) => {
-    if (meshRef.current && open) meshRef.current.rotation.z += delta * 1.4
+    if (spinRef.current && open && !reducedMotion) spinRef.current.rotation.z += delta * 1.5
+  })
+
+  if (!open) return null
+
+  return (
+    <animated.group position-x={spring.x} position-z={-0.012} rotation-y={spring.tilt}>
+      <group ref={spinRef}>
+        <mesh>
+          <circleGeometry args={[radius, 56]} />
+          <meshStandardMaterial
+            key={texture?.uuid ?? 'no-disc'}
+            map={texture ?? undefined}
+            color={texture ? '#ffffff' : '#c3bccf'}
+            metalness={0.88}
+            roughness={0.14}
+            side={DoubleSide}
+          />
+        </mesh>
+        {/* The data track catching light off-axis — the iridescent ring */}
+        <mesh position={[0, 0, 0.0006]}>
+          <ringGeometry args={[radius * 0.34, radius * 0.94, 56]} />
+          <meshStandardMaterial
+            color="#9fd2e8"
+            metalness={1}
+            roughness={0.08}
+            transparent
+            opacity={0.28}
+            side={DoubleSide}
+          />
+        </mesh>
+        <mesh position={[0, 0, 0.0014]}>
+          <circleGeometry args={[radius * 0.17, 24]} />
+          <meshBasicMaterial color="#07050a" />
+        </mesh>
+      </group>
+    </animated.group>
+  )
+}
+
+/** A record leaving its sleeve, turning at roughly 33rpm. */
+function Record({
+  item,
+  open,
+  size,
+  reducedMotion,
+}: {
+  item: CollectionItem
+  open: boolean
+  size: number
+  reducedMotion: boolean
+}) {
+  const spinRef = useRef<Group>(null)
+  const labelTexture = useLazyTexture(item.discImageUrl || item.coverImageUrl || undefined)
+  const radius = size * 0.47
+
+  const spring = useSpring({
+    x: open ? size * 0.84 : 0,
+    config: { tension: 130, friction: 26 },
+  })
+
+  useFrame((_, delta) => {
+    // 33⅓rpm is 3.49 rad/s; slowed, because at true speed the label smears.
+    if (spinRef.current && open && !reducedMotion) spinRef.current.rotation.z += delta * 1.9
   })
 
   if (!open) return null
 
   return (
     <animated.group position-x={spring.x} position-z={-0.01}>
-      <mesh ref={meshRef}>
-        <circleGeometry args={[radius, 48]} />
-        <meshStandardMaterial
-          key={texture?.uuid ?? 'no-disc'}
-          map={texture ?? undefined}
-          color={texture ? '#ffffff' : '#b9b4c4'}
-          metalness={0.85}
-          roughness={0.18}
-          side={DoubleSide}
-        />
-      </mesh>
-      {/* The spindle hole, so the disc doesn't read as a plain coin. */}
-      <mesh position={[0, 0, 0.001]}>
-        <circleGeometry args={[radius * 0.16, 24]} />
-        <meshBasicMaterial color="#07050a" />
-      </mesh>
-    </animated.group>
-  )
-}
-
-/** A record leaving its sleeve, spinning at roughly 33rpm. */
-function Record({ item, open }: { item: CollectionItem; open: boolean }) {
-  const meshRef = useRef<Mesh>(null)
-  const labelTexture = useLazyTexture(item.discImageUrl || item.coverImageUrl || undefined)
-  const radius = CASE_DIMENSIONS.vinyl.width * 0.47
-
-  const spring = useSpring({
-    x: open ? CASE_DIMENSIONS.vinyl.width * 0.82 : 0,
-    config: { tension: 150, friction: 28 },
-  })
-
-  useFrame((_, delta) => {
-    // 33⅓ rpm is 3.49 rad/s. Slowed a little; at true speed the label smears.
-    if (meshRef.current && open) meshRef.current.rotation.z += delta * 1.9
-  })
-
-  if (!open) return null
-
-  return (
-    <animated.group position-x={spring.x} position-z={-0.008}>
-      <group ref={meshRef as never}>
+      <group ref={spinRef}>
         <mesh>
           <circleGeometry args={[radius, 64]} />
-          <meshStandardMaterial color="#0a0a0c" metalness={0.35} roughness={0.42} side={DoubleSide} />
+          <meshStandardMaterial color="#08080b" metalness={0.42} roughness={0.36} side={DoubleSide} />
         </mesh>
-        {/* Grooves: a few concentric rings are enough to read as vinyl. */}
-        {[0.94, 0.82, 0.7, 0.58].map((scale) => (
-          <mesh key={scale} position={[0, 0, 0.0008]}>
-            <ringGeometry args={[radius * scale - 0.004, radius * scale, 64]} />
-            <meshBasicMaterial color="#1b1b20" transparent opacity={0.7} />
+        {[0.95, 0.86, 0.77, 0.68, 0.59, 0.5].map((scale) => (
+          <mesh key={scale} position={[0, 0, 0.0006]}>
+            <ringGeometry args={[radius * scale - 0.003, radius * scale, 64]} />
+            <meshBasicMaterial color="#25252c" transparent opacity={0.65} />
           </mesh>
         ))}
-        <mesh position={[0, 0, 0.0016]}>
-          <circleGeometry args={[radius * 0.36, 48]} />
+        <mesh position={[0, 0, 0.0014]}>
+          <circleGeometry args={[radius * 0.35, 44]} />
           <meshStandardMaterial
             key={labelTexture?.uuid ?? 'no-label'}
             map={labelTexture ?? undefined}
             color={labelTexture ? '#ffffff' : '#3a1d5c'}
-            roughness={0.8}
+            roughness={0.82}
           />
         </mesh>
-        <mesh position={[0, 0, 0.0024]}>
-          <circleGeometry args={[radius * 0.035, 16]} />
+        <mesh position={[0, 0, 0.0022]}>
+          <circleGeometry args={[radius * 0.034, 16]} />
           <meshBasicMaterial color="#07050a" />
         </mesh>
       </group>
@@ -119,57 +147,44 @@ function Record({ item, open }: { item: CollectionItem; open: boolean }) {
 }
 
 export function MediaCase({
-  item,
-  position,
+  placed,
   selected,
   dragging,
-  dimmed,
+  reducedMotion,
   onSelect,
   onDragStart,
 }: MediaCaseProps) {
+  const { item, width, height, depth } = placed
   const [hovered, setHovered] = useState(false)
-  const groupRef = useRef<Group>(null)
 
-  const dims = CASE_DIMENSIONS[item.type]
   const front = useLazyTexture(item.coverImageUrl || undefined)
   const back = useLazyTexture(item.backCoverImageUrl || undefined)
   // Stands in for a sleeve with no scan yet — a film before TMDB is wired up,
   // or anything added by hand. Without it those cases are blank slabs.
-  const label = useLabelTexture(
-    !item.coverImageUrl,
-    item.title,
-    item.artistOrDirector,
-    dims.width / dims.height,
-  )
+  const label = useLabelTexture(!item.coverImageUrl, item.title, item.artistOrDirector, width / height)
   const faceTexture = front ?? label
   const glow = item.dominantColor || FALLBACK_GLOW
 
   // Pointer-down starts a drag, but a click must still select. Distinguished
-  // by distance travelled, not by timing, so a slow deliberate click still
-  // selects and a fast flick still drags.
+  // by distance travelled, not timing, so a slow deliberate click still
+  // selects and a quick flick still drags.
   const pressRef = useRef<{ x: number; y: number; dragging: boolean } | null>(null)
 
   const spring = useSpring({
-    z: selected ? 0.9 : hovered ? 0.16 : 0,
+    z: selected ? 0.78 : hovered ? 0.14 : 0,
+    lift: selected ? height * 0.16 : hovered ? height * 0.04 : 0,
     rotationY: selected ? Math.PI : 0,
-    scale: selected ? 1.12 : hovered ? 1.05 : 1,
-    tilt: hovered && !selected ? -0.16 : 0,
-    emissive: selected ? 0.55 : hovered ? 0.32 : 0,
-    config: { tension: 210, friction: 24 },
+    scale: selected ? 1.16 : hovered ? 1.045 : 1,
+    tilt: hovered && !selected ? -0.13 : 0,
+    emissive: selected ? 0.5 : hovered ? 0.3 : 0,
+    config: reducedMotion
+      ? { tension: 400, friction: 60 }
+      : { tension: 200, friction: 23 },
   })
-
-  const materials = useMemo(
-    () => ({ body: CASE_BODY[item.type] }),
-    [item.type],
-  )
 
   function handlePointerDown(event: { stopPropagation: () => void; nativeEvent: PointerEvent }) {
     event.stopPropagation()
-    pressRef.current = {
-      x: event.nativeEvent.clientX,
-      y: event.nativeEvent.clientY,
-      dragging: false,
-    }
+    pressRef.current = { x: event.nativeEvent.clientX, y: event.nativeEvent.clientY, dragging: false }
   }
 
   function handlePointerMove(event: { nativeEvent: PointerEvent }) {
@@ -179,7 +194,7 @@ export function MediaCase({
       event.nativeEvent.clientX - press.x,
       event.nativeEvent.clientY - press.y,
     )
-    if (travelled > 6) {
+    if (travelled > 7) {
       press.dragging = true
       onDragStart(item, event.nativeEvent)
     }
@@ -195,10 +210,9 @@ export function MediaCase({
 
   return (
     <animated.group
-      ref={groupRef}
-      position-x={position[0]}
-      position-y={position[1]}
-      position-z={spring.z.to((z) => position[2] + z)}
+      position-x={placed.x}
+      position-y={spring.lift.to((lift) => placed.y + lift)}
+      position-z={spring.z}
       rotation-x={spring.tilt}
       rotation-y={spring.rotationY}
       scale={spring.scale}
@@ -206,56 +220,55 @@ export function MediaCase({
       onPointerOver={(event) => {
         event.stopPropagation()
         setHovered(true)
+        document.body.style.cursor = 'pointer'
       }}
-      onPointerOut={() => setHovered(false)}
+      onPointerOut={() => {
+        setHovered(false)
+        document.body.style.cursor = ''
+      }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
     >
-      {/* The case body. Vinyl is a card sleeve, so it gets no bevel or sheen. */}
-      <mesh castShadow>
-        <boxGeometry args={[dims.width, dims.height, dims.depth]} />
+      <mesh>
+        <boxGeometry args={[width, height, depth]} />
         <animated.meshStandardMaterial
-          color={materials.body}
+          color={CASE_BODY[item.type]}
           emissive={glow}
           emissiveIntensity={spring.emissive}
-          roughness={item.type === 'vinyl' ? 0.92 : 0.42}
-          metalness={item.type === 'vinyl' ? 0 : 0.15}
-          transparent
-          opacity={dimmed ? 0.25 : 1}
+          roughness={item.type === 'vinyl' ? 0.93 : 0.36}
+          metalness={item.type === 'vinyl' ? 0 : 0.18}
         />
       </mesh>
 
       {/* Front artwork, or a printed label when there is no scan */}
-      <mesh position={[0, 0, dims.depth / 2 + 0.001]}>
-        <planeGeometry args={[dims.width * 0.97, dims.height * 0.97]} />
+      <mesh position={[0, 0, depth / 2 + 0.001]}>
+        <planeGeometry args={[width * 0.97, height * 0.97]} />
         <meshStandardMaterial
           key={faceTexture?.uuid ?? 'no-front'}
           map={faceTexture ?? undefined}
           color={faceTexture ? '#ffffff' : '#241a2e'}
-          roughness={item.type === 'vinyl' ? 0.88 : 0.55}
-          transparent
-          opacity={dimmed ? 0.25 : 1}
+          roughness={item.type === 'vinyl' ? 0.9 : 0.5}
         />
       </mesh>
 
-      {/* Back artwork, rotated so it reads correctly once the case is turned */}
-      <mesh position={[0, 0, -dims.depth / 2 - 0.001]} rotation={[0, Math.PI, 0]}>
-        <planeGeometry args={[dims.width * 0.97, dims.height * 0.97]} />
+      {/* Back artwork, turned so it reads correctly once the case is flipped */}
+      <mesh position={[0, 0, -depth / 2 - 0.001]} rotation={[0, Math.PI, 0]}>
+        <planeGeometry args={[width * 0.97, height * 0.97]} />
         <meshStandardMaterial
           key={back?.uuid ?? 'no-back'}
           map={back ?? undefined}
-          color={back ? '#ffffff' : '#181022'}
-          roughness={0.7}
-          transparent
-          opacity={dimmed ? 0.25 : 1}
+          color={back ? '#ffffff' : '#191122'}
+          roughness={0.72}
         />
       </mesh>
 
       {item.type === 'vinyl' ? (
-        <Record item={item} open={selected} />
+        <Record item={item} open={selected} size={width} reducedMotion={reducedMotion} />
       ) : (
-        item.type === 'cd' && <Disc item={item} open={selected} />
+        item.type === 'cd' && (
+          <Disc item={item} open={selected} size={Math.min(width, height)} reducedMotion={reducedMotion} />
+        )
       )}
     </animated.group>
   )

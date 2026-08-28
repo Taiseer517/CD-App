@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import type { CollectionItem } from '../../data/schema'
+import { useCollectionStore } from '../../store/useCollectionStore'
 import { Rating } from '../common/Rating'
 
 function duration(ms: number | null): string {
@@ -19,6 +20,8 @@ interface CaseDetailPanelProps {
  * rendered type is unreadable, and a tracklist needs to be selectable.
  */
 export function CaseDetailPanel({ item, onClose }: CaseDetailPanelProps) {
+  const updateItem = useCollectionStore((state) => state.updateItem)
+
   return (
     <AnimatePresence>
       {item && (
@@ -54,7 +57,13 @@ export function CaseDetailPanel({ item, onClose }: CaseDetailPanelProps) {
           </div>
 
           <div className="flex-1 space-y-4 overflow-y-auto p-5">
-            <Rating value={item.rating} />
+            <div>
+              <p className="mb-1 text-xs uppercase tracking-wide text-bone-400">Your rating</p>
+              <Rating
+                value={item.rating}
+                onChange={(rating) => updateItem(item.id, { rating })}
+              />
+            </div>
 
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
               {[

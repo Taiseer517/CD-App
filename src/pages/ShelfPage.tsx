@@ -43,10 +43,16 @@ export function ShelfPage() {
   )
 
   const searchActive = searchQuery.trim().length > 0
-  const matchedIds = useMemo(() => {
-    if (!searchActive) return new Set<string>()
-    return new Set(owned.filter((item) => matchesQuery(item, searchQuery)).map((item) => item.id))
-  }, [owned, searchQuery, searchActive])
+
+  // Among three hundred records, dimming the misses is no help at all — the
+  // shelf shows only what matched, and rearranging is paused until the search
+  // is cleared so a drag cannot renumber a shelf it can only partly see.
+  const shelfItems = useMemo(
+    () => (searchActive ? owned.filter((item) => matchesQuery(item, searchQuery)) : owned),
+    [owned, searchQuery, searchActive],
+  )
+
+  const [focusShelfId, setFocusShelfId] = useState<string | null | undefined>(undefined)
 
   const counts = useMemo(() => {
     const tally = new Map<string | null, number>()
@@ -58,11 +64,25 @@ export function ShelfPage() {
   }, [owned, shelves])
 
   async function handleMove(itemId: string, target: DropTarget) {
-    // Recomputed from the same layout the scene drew, so the slot the marker
-    // showed is the slot the record lands in.
+    // Recomputed from the full collection rather than the drawn layout, so a
+    // move is always numbered against every record on the shelf.
     const layout = layoutBookcase(owned, shelves)
     const changes = reindexAfterMove(layout, itemId, target.shelfId, target.index)
     await savePlacements(changes)
+  }
+
+  async function handleTidy(shelfId: string | null) {
+    const onShelf = owned
+      .filter((item) => (item.shelfId ?? null) === shelfId)
+      .sort(
+        (a, b) =>
+          a.artistOrDirector.localeCompare(b.artistOrDirector) ||
+          a.year - b.year ||
+          a.title.localeCompare(b.title),
+      )
+    await savePlacements(
+      onShelf.map((item, position) => ({ id: item.id, shelfId, position })),
+    )
   }
 
   const wantsCanvas = viewMode === '3d'
@@ -85,9 +105,11 @@ export function ShelfPage() {
         <div className="order-2 space-y-4 lg:order-1">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-bone-400">
-              {showCanvas
-                ? 'Drag to look around, scroll to zoom, click a case to open it.'
-                : 'Simple mode — the 3D shelf is turned off.'}
+              {!showCanvas
+                ? 'Simple mode — the 3D shelf is turned off.'
+                : searchActive
+                  ? `Showing ${shelfItems.length} ${shelfItems.length === 1 ? 'match' : 'matches'}. Clear the search to rearrange.`
+                  : 'Click a case to open it. Drag one to move it between shelves.'}
             </p>
             <div className="flex items-center gap-4">
               {showCanvas && (
@@ -114,13 +136,13 @@ export function ShelfPage() {
           </div>
 
           {showCanvas ? (
-            <div className="relative h-[640px] overflow-hidden rounded-xl border border-void-700 bg-void-950">
+            <div className="relative h-[680px] overflow-hidden rounded-xl border border-void-700 bg-void-950">
               <ShelfScene
-                items={owned}
+                items={shelfItems}
                 shelves={shelves}
                 selectedId={selectedId}
-                matchedIds={matchedIds}
                 searchActive={searchActive}
+                focusShelfId={focusShelfId}
                 cinematicEffects={cinematicEffects}
                 reducedMotion={reducedMotion}
                 onSelect={(item) => setSelectedId((current) => (current === item.id ? null : item.id))}
@@ -151,6 +173,8 @@ export function ShelfPage() {
             }}
             onRename={renameShelf}
             onDelete={deleteShelf}
+            onTidy={handleTidy}
+            onFocus={(id) => setFocusShelfId(id)}
           />
         </div>
       </div>

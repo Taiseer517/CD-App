@@ -1,8 +1,8 @@
 import type { MediaType } from '../data/schema'
 
 /**
- * World units at 1 unit = 20cm, taken from the real objects so a 12" record
- * towers over a jewel case the way it does on an actual shelf.
+ * Real proportions of the physical objects, at 1 unit = 20cm.
+ * Only the aspect ratio is used directly — see standardHeight below for why.
  */
 export interface CaseDimensions {
   width: number
@@ -16,14 +16,49 @@ export const CASE_DIMENSIONS: Record<MediaType, CaseDimensions> = {
   vinyl: { width: 1.58, height: 1.58, depth: 0.03 },
 }
 
-/** Clearance between a row's tallest case and the plank above it. */
-export const SHELF_HEADROOM = 0.28
-export const PLANK_THICKNESS = 0.08
-export const PLANK_DEPTH = 1.9
-/** The case is sized to its contents between these bounds, not fixed wide. */
-export const MIN_BOOKCASE_WIDTH = 4.5
-export const MAX_BOOKCASE_WIDTH = 12
-export const CASE_GAP = 0.14
+export function aspectOf(type: MediaType): number {
+  return CASE_DIMENSIONS[type].width / CASE_DIMENSIONS[type].height
+}
 
-/** Below this the row is squeezed and cases start to overlap on purpose. */
-export const MIN_CASE_PITCH = 0.22
+/**
+ * Every case in a row is drawn to the same height, keeping its own aspect
+ * ratio. This is how a real rack reads — spines and sleeves level with one
+ * another — and it is what stops a CD dropped onto a record shelf from
+ * looking like a mistake instead of a choice.
+ */
+export const ROW_STANDARD_HEIGHT: Record<MediaType, number> = {
+  cd: 0.78,
+  dvd: 0.9,
+  vinyl: 1.5,
+}
+
+export const SHELF_HEADROOM = 0.34
+export const PLANK_THICKNESS = 0.09
+export const PLANK_DEPTH = 1.7
+
+/**
+ * The bookcase is a fixed piece of furniture, not something that resizes.
+ * Narrow and tall like a real CD rack — a wide one leaves a handful of discs
+ * marooned in the middle of an empty plank.
+ */
+/**
+ * Furniture comes in sizes. A handful of records gets a cosy case; a serious
+ * collection gets a library wall. Stepped rather than continuous so it still
+ * reads as a solid object rather than something that breathes with the data.
+ */
+export function bookcaseWidthFor(largestShelf: number): number {
+  if (largestShelf <= 14) return 5.6
+  if (largestShelf <= 70) return 7.6
+  return 9.8
+}
+
+/** Default used by anything that needs a width before the layout is known. */
+export const BOOKCASE_WIDTH = 5.6
+export const CASE_GAP = 0.055
+
+/** Records stack from the left, against the upright, the way books do. */
+export const SHELF_INSET = 0.13
+
+/** Vertical extent of the crown above the cornice, and the plinth below. */
+export const CROWN_HEIGHT = 1.15
+export const PLINTH_HEIGHT = 0.42

@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { safeImageUrl } from '../../data/safeUrl'
 import type { CollectionItem } from '../../data/schema'
 import { Rating } from '../common/Rating'
 
@@ -32,7 +33,7 @@ export function CollectionCard({ item, dimmed = false }: CollectionCardProps) {
         <div className="relative aspect-square w-full overflow-hidden bg-gradient-to-br from-velvet-900 via-void-900 to-void-950">
           {item.coverImageUrl ? (
             <img
-              src={item.coverImageUrl}
+              src={safeImageUrl(item.coverImageUrl)}
               alt={`${item.title} cover art`}
               loading="lazy"
               className="h-full w-full object-cover"

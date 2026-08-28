@@ -4,6 +4,7 @@ import { EmptyState } from '../components/common/EmptyState'
 import { Rating } from '../components/common/Rating'
 import { TagList } from '../components/common/TagList'
 import { PageTransition } from '../components/layout/PageTransition'
+import { cssUrl, safeImageUrl } from '../data/safeUrl'
 import type { CollectionItem } from '../data/schema'
 import { useCollectionStore } from '../store/useCollectionStore'
 
@@ -35,6 +36,7 @@ export function ItemDetailPage() {
   const navigate = useNavigate()
   const item = useCollectionStore((state) => state.items.find((entry) => entry.id === id))
   const deleteItem = useCollectionStore((state) => state.deleteItem)
+  const updateItem = useCollectionStore((state) => state.updateItem)
   const [showBack, setShowBack] = useState(false)
 
   if (!item) {
@@ -61,7 +63,7 @@ export function ItemDetailPage() {
           <>
             <div
               className="absolute inset-0 scale-110 bg-cover bg-center opacity-25 blur-xl"
-              style={{ backgroundImage: `url(${item.backgroundImageUrl})` }}
+              style={{ backgroundImage: cssUrl(item.backgroundImageUrl) }}
               aria-hidden="true"
             />
             {/* Tinted with the sleeve's own colour, so each record lights its
@@ -85,7 +87,7 @@ export function ItemDetailPage() {
               >
                 {facing ? (
                   <img
-                    src={facing}
+                    src={safeImageUrl(facing)}
                     alt={`${item.title} ${showBack ? 'back cover' : 'cover art'}`}
                     className="h-full w-full object-cover"
                   />
@@ -111,7 +113,7 @@ export function ItemDetailPage() {
               {item.discImageUrl && (
                 <div className="flex items-center gap-3 rounded-md border border-void-700 p-3">
                   <img
-                    src={item.discImageUrl}
+                    src={safeImageUrl(item.discImageUrl)}
                     alt=""
                     className="h-12 w-12 rounded-full object-cover"
                   />
@@ -131,7 +133,13 @@ export function ItemDetailPage() {
                 </p>
               </div>
 
-              <Rating value={item.rating} />
+              <div>
+                <p className="mb-1 text-xs uppercase tracking-wide text-bone-400">Your rating</p>
+                <Rating
+                  value={item.rating}
+                  onChange={(rating) => updateItem(item.id, { rating })}
+                />
+              </div>
 
               <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
                 <DetailRow label="Genre" value={item.genre} />

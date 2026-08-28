@@ -173,6 +173,61 @@ export function formatToMediaType(format: string): MediaType | null {
   return null
 }
 
+/**
+ * Free-text search for the case where she knows what she is hunting for but
+ * not which half is the artist.
+ *
+ * MusicBrainz ranks "Dead Can Dance Aion" with the self-titled album first,
+ * because three of the four words match its title outright. Results are
+ * therefore re-ranked here on how much of what she typed each one actually
+ * accounts for — the record called Aion by Dead Can Dance explains every word,
+ * the self-titled album leaves one stranded.
+ */
+export async function searchAlbums(freeText: string): Promise<ReleaseSummary[]> {
+  const trimmed = freeText.trim()
+  if (!trimmed) return []
+
+  const url = `${API}/release/?query=${encodeURIComponent(trimmed)}&fmt=json&limit=40`
+  const data = await request<{ releases?: RawRelease[] }>(url)
+
+  const terms = trimmed
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((term) => term.length > 1)
+
+  const summaries = (data.releases ?? []).map((release) => {
+    const { label, catalogNumber } = firstLabel(release)
+    const artist = creditedArtist(release)
+    const title = release.title ?? ''
+    const haystack = `${title} ${artist}`.toLowerCase()
+    const covered = terms.filter((term) => haystack.includes(term)).length
+
+    return {
+      summary: {
+        id: release.id,
+        title,
+        artist,
+        date: release.date ?? '',
+        country: release.country ?? '',
+        label,
+        catalogNumber,
+        format: mediaFormat(release),
+        trackCount: (release.media ?? []).reduce((sum, m) => sum + (m['track-count'] ?? 0), 0),
+        barcode: release.barcode ?? '',
+      } satisfies ReleaseSummary,
+      coverage: terms.length === 0 ? 1 : covered / terms.length,
+      // A release with a known date and country is a real pressing someone
+      // catalogued properly, rather than a bare stub.
+      completeness: (release.date ? 1 : 0) + (release.country ? 1 : 0),
+    }
+  })
+
+  return summaries
+    .sort((a, b) => b.coverage - a.coverage || b.completeness - a.completeness)
+    .map((entry) => entry.summary)
+    .slice(0, 14)
+}
+
 export async function getRelease(mbid: string): Promise<Partial<CollectionItemInput>> {
   const url = `${API}/release/${mbid}?inc=artist-credits+labels+recordings+genres&fmt=json`
   return mapReleaseToPatch(await request<RawRelease>(url))

@@ -1,12 +1,23 @@
-import { OrbitControls } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Bloom, EffectComposer, Vignette } from '@react-three/postprocessing'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Plane, Raycaster, Vector2, Vector3, type Group, type PerspectiveCamera } from 'three'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  AdditiveBlending,
+  BufferAttribute,
+  BufferGeometry,
+  MathUtils,
+  Plane,
+  Raycaster,
+  Vector2,
+  Vector3,
+  type Group,
+  type PerspectiveCamera,
+  type Points,
+} from 'three'
 import type { CollectionItem, Shelf } from '../data/schema'
 import { deriveAmbience } from './ambience'
 import { Bookcase } from './Bookcase'
-import { CASE_DIMENSIONS, PLANK_DEPTH } from './dimensions'
+import { PLANK_DEPTH } from './dimensions'
 import { layoutBookcase, rowAt, slotIndexAt, type BookcaseLayout } from './layout'
 import { useLazyTexture } from './hooks/useLazyTexture'
 
@@ -19,60 +30,201 @@ interface ShelfSceneProps {
   items: CollectionItem[]
   shelves: Shelf[]
   selectedId: string | null
-  matchedIds: Set<string>
   searchActive: boolean
+  /** Set to scroll the view to a shelf; undefined leaves the view alone. */
+  focusShelfId?: string | null
   cinematicEffects: boolean
   reducedMotion: boolean
   onSelect: (item: CollectionItem) => void
   onMove: (itemId: string, target: DropTarget) => void
 }
 
-/** The case that follows the pointer while a drag is in flight. */
-function DragGhost({ item, position }: { item: CollectionItem; position: Vector3 }) {
-  const dims = CASE_DIMENSIONS[item.type]
+/**
+ * How much of the bookcase is visible at once, in world units. Generous
+ * enough that a few shelves are shown whole; a taller case scrolls.
+ */
+const VIEW_HEIGHT = 7
+const CAMERA_DISTANCE = 6.4
+
+/** Dust hanging in the candlelight. */
+function Motes({ count = 90, spread }: { count?: number; spread: { x: number; y: number } }) {
+  const pointsRef = useRef<Points>(null)
+
+  const geometry = useMemo(() => {
+    // A small deterministic generator, so the dust is scattered but stable —
+    // Math.random during render gives a different pattern on every pass.
+    let seed = 0x2f6e2b1
+    const next = () => {
+      seed = (seed * 1664525 + 1013904223) % 4294967296
+      return seed / 4294967296
+    }
+
+    const positions = new Float32Array(count * 3)
+    for (let i = 0; i < count; i++) {
+      positions[i * 3] = (next() - 0.5) * spread.x
+      positions[i * 3 + 1] = (next() - 0.5) * spread.y
+      positions[i * 3 + 2] = next() * 1.9 + 0.3
+    }
+    const geo = new BufferGeometry()
+    geo.setAttribute('position', new BufferAttribute(positions, 3))
+    return geo
+  }, [count, spread.x, spread.y])
+
+  useFrame((state) => {
+    if (!pointsRef.current) return
+    // Drifting rather than falling: dust in still air, not snow.
+    pointsRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.05) * 0.09
+    pointsRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.11) * 0.09
+  })
+
+  return (
+    <points ref={pointsRef} geometry={geometry}>
+      <pointsMaterial
+        size={0.014}
+        color="#ffd7a8"
+        transparent
+        opacity={0.34}
+        sizeAttenuation
+        blending={AdditiveBlending}
+        depthWrite={false}
+      />
+    </points>
+  )
+}
+
+/**
+ * A fixed camera looking straight at the bookcase.
+ *
+ * There is no orbiting and no zoom: the shelf is a piece of furniture against
+ * a wall, and letting the viewer fly around it made the thing harder to read
+ * and harder to drag onto. All that moves is the height, and only when the
+ * bookcase is taller than the view.
+ */
+function StaticCamera({
+  layout,
+  scrollY,
+  reducedMotion,
+}: {
+  layout: BookcaseLayout
+  scrollY: number
+  reducedMotion: boolean
+}) {
+  const { camera, size } = useThree()
+  const pointer = useRef({ x: 0, y: 0 })
+
+  useEffect(() => {
+    const perspective = camera as PerspectiveCamera
+    const vFov = (perspective.fov * Math.PI) / 180
+    const aspect = size.width / Math.max(size.height, 1)
+
+    // Frame the whole piece of furniture, crown and plinth included, or a
+    // fixed slice of a bookcase too tall to show at once.
+    const drawnHeight = layout.extentTop - layout.extentBottom
+    const forWidth = (layout.width + 1.5) / 2 / (Math.tan(vFov / 2) * aspect)
+    const forHeight = Math.min(drawnHeight, VIEW_HEIGHT) / 2 / Math.tan(vFov / 2)
+    perspective.position.z = Math.max(forWidth, forHeight * 1.08, CAMERA_DISTANCE)
+    perspective.updateProjectionMatrix()
+  }, [camera, layout.width, layout.extentTop, layout.extentBottom, size.width, size.height])
+
+  useEffect(() => {
+    function track(event: PointerEvent) {
+      pointer.current.x = (event.clientX / window.innerWidth) * 2 - 1
+      pointer.current.y = (event.clientY / window.innerHeight) * 2 - 1
+    }
+    window.addEventListener('pointermove', track)
+    return () => window.removeEventListener('pointermove', track)
+  }, [])
+
+  useFrame(() => {
+    // A whisper of parallax keeps the scene from feeling like a photograph,
+    // without ever becoming a control the viewer has to operate.
+    const driftX = reducedMotion ? 0 : pointer.current.x * 0.24
+    const driftY = reducedMotion ? 0 : -pointer.current.y * 0.14
+
+    camera.position.x = MathUtils.lerp(camera.position.x, driftX, 0.045)
+    camera.position.y = MathUtils.lerp(camera.position.y, scrollY + driftY, 0.12)
+    camera.lookAt(0, camera.position.y - driftY * 0.5, 0)
+  })
+
+  return null
+}
+
+/**
+ * Publishes where each visible case has landed on screen, for the browser
+ * verification script — clicking a 3D object from outside the canvas is
+ * otherwise a matter of guessing coordinates, which silently starts hitting
+ * empty shelf whenever the layout changes.
+ *
+ * Development only; the whole component is dropped from a production build.
+ */
+function TestProbe({ layout, band }: { layout: BookcaseLayout; band: { min: number; max: number } }) {
+  const { camera, gl, size } = useThree()
+  const centreY = -(layout.extentTop + layout.extentBottom) / 2
+
+  useFrame(() => {
+    const rect = gl.domElement.getBoundingClientRect()
+    const projected: { id: string; title: string; x: number; y: number }[] = []
+    const point = new Vector3()
+
+    for (const row of layout.rows) {
+      if (row.y - row.height / 2 > band.max || row.y + row.height / 2 < band.min) continue
+      for (const placed of row.cases) {
+        point.set(placed.x, placed.y + centreY, 0)
+        point.project(camera)
+        projected.push({
+          id: placed.item.id,
+          title: placed.item.title,
+          x: rect.left + ((point.x + 1) / 2) * size.width,
+          y: rect.top + ((1 - point.y) / 2) * size.height,
+        })
+      }
+    }
+
+    ;(window as unknown as { __archiveCases?: unknown }).__archiveCases = projected
+  })
+
+  return null
+}
+
+function DragGhost({ item, position, size }: { item: CollectionItem; position: Vector3; size: { w: number; h: number } }) {
   const texture = useLazyTexture(item.coverImageUrl || undefined)
 
   return (
-    <group position={position} rotation={[0, 0, -0.08]} scale={1.1}>
+    <group position={position} rotation={[0, 0, -0.07]} scale={1.12}>
       <mesh>
-        <boxGeometry args={[dims.width, dims.height, dims.depth]} />
+        <boxGeometry args={[size.w, size.h, 0.05]} />
         <meshStandardMaterial
-          color="#1a1422"
+          color="#1c1526"
           emissive={item.dominantColor || '#c22f3f'}
-          emissiveIntensity={0.5}
+          emissiveIntensity={0.6}
           transparent
-          opacity={0.9}
+          opacity={0.92}
         />
       </mesh>
-      <mesh position={[0, 0, dims.depth / 2 + 0.001]}>
-        <planeGeometry args={[dims.width * 0.97, dims.height * 0.97]} />
+      <mesh position={[0, 0, 0.027]}>
+        <planeGeometry args={[size.w * 0.97, size.h * 0.97]} />
         <meshStandardMaterial
           key={texture?.uuid ?? 'no-ghost'}
           map={texture ?? undefined}
           color={texture ? '#ffffff' : '#241a2e'}
           transparent
-          opacity={0.92}
+          opacity={0.95}
         />
       </mesh>
     </group>
   )
 }
 
-/**
- * Tracks the pointer during a drag and reports where the case would land.
- *
- * Drop position is read by intersecting the pointer ray with the plane the
- * cases sit on, so the case follows the cursor at shelf depth rather than
- * drifting nearer or further as the camera angle changes.
- */
 function DragLayer({
   item,
+  size,
   layout,
   onHover,
   onDrop,
   onCancel,
 }: {
   item: CollectionItem
+  size: { w: number; h: number }
   layout: BookcaseLayout
   onHover: (target: DropTarget | null) => void
   onDrop: (target: DropTarget | null) => void
@@ -86,24 +238,19 @@ function DragLayer({
     const element = gl.domElement
     const raycaster = new Raycaster()
     const pointer = new Vector2()
-    const plane = new Plane(new Vector3(0, 0, 1), -(PLANK_DEPTH / 2 - 0.35))
+    const plane = new Plane(new Vector3(0, 0, 1), -(PLANK_DEPTH / 2 - 0.2))
     const hit = new Vector3()
 
-    function locate(event: PointerEvent): Vector3 | null {
+    function handleMove(event: PointerEvent) {
       const rect = element.getBoundingClientRect()
       pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
       pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
       raycaster.setFromCamera(pointer, camera)
-      return raycaster.ray.intersectPlane(plane, hit) ? hit.clone() : null
-    }
+      if (!raycaster.ray.intersectPlane(plane, hit)) return
 
-    function handleMove(event: PointerEvent) {
-      const point = locate(event)
-      if (!point) return
-      setPosition(point)
-
-      const row = rowAt(layout, point.y)
-      const next = row ? { shelfId: row.shelfId, index: slotIndexAt(row, point.x) } : null
+      setPosition(hit.clone())
+      const row = rowAt(layout, hit.y)
+      const next = row ? { shelfId: row.shelfId, index: slotIndexAt(row, hit.x) } : null
       targetRef.current = next
       onHover(next)
     }
@@ -126,135 +273,107 @@ function DragLayer({
     }
   }, [camera, gl, layout, onHover, onDrop, onCancel])
 
-  return <DragGhost item={item} position={position} />
-}
-
-/**
- * Pulls the camera back far enough to hold the whole bookcase, re-fitting when
- * a new shelf changes its height. Only runs when the bookcase's size actually
- * changes, so it never fights the user's own zooming.
- */
-function FitCamera({ layout }: { layout: BookcaseLayout }) {
-  const { camera, size } = useThree()
-  const fittedRef = useRef('')
-
-  useEffect(() => {
-    const signature = `${layout.height.toFixed(2)}x${layout.width}x${size.width}x${size.height}`
-    if (fittedRef.current === signature) return
-    fittedRef.current = signature
-
-    const perspective = camera as PerspectiveCamera
-    const vFov = (perspective.fov * Math.PI) / 180
-    const aspect = size.width / Math.max(size.height, 1)
-
-    const forHeight = layout.height / 2 / Math.tan(vFov / 2)
-    const forWidth = layout.width / 2 / (Math.tan(vFov / 2) * aspect)
-
-    // 1.25 leaves the case breathing room inside the frame instead of letting
-    // the outermost sleeves touch the edges.
-    perspective.position.set(0, 0, Math.max(forHeight, forWidth) * 1.25 + 1)
-    perspective.updateProjectionMatrix()
-  }, [camera, layout.height, layout.width, size.width, size.height])
-
-  return null
-}
-
-function IdleDrift({ speed, enabled }: { speed: number; enabled: boolean }) {
-  const ref = useRef<Group>(null)
-  useFrame((state) => {
-    if (!ref.current) return
-    if (!enabled) {
-      ref.current.rotation.y = 0
-      return
-    }
-    ref.current.rotation.y = Math.sin(state.clock.elapsedTime * speed) * 0.035
-  })
-  return <group ref={ref} />
+  return <DragGhost item={item} position={position} size={size} />
 }
 
 function SceneContents({
   items,
   shelves,
   selectedId,
-  matchedIds,
   searchActive,
   reducedMotion,
+  scrollY,
   onSelect,
   onMove,
-}: Omit<ShelfSceneProps, 'cinematicEffects'>) {
+  onLayout,
+}: Omit<ShelfSceneProps, 'cinematicEffects' | 'focusShelfId'> & {
+  scrollY: number
+  onLayout: (layout: BookcaseLayout) => void
+}) {
   const layout = useMemo(() => layoutBookcase(items, shelves), [items, shelves])
   const ambience = useMemo(() => deriveAmbience(items), [items])
-
-  const [dragging, setDragging] = useState<CollectionItem | null>(null)
-  const [dropTarget, setDropTarget] = useState<DropTarget | null>(null)
   const groupRef = useRef<Group>(null)
 
-  // The bookcase hangs down from y=0, so shift it up to sit around the origin.
-  const centreY = layout.height / 2
+  const [dragging, setDragging] = useState<{ item: CollectionItem; w: number; h: number } | null>(null)
+  const [dropTarget, setDropTarget] = useState<DropTarget | null>(null)
 
-  useFrame((state) => {
-    if (!groupRef.current || reducedMotion || dragging) return
-    groupRef.current.rotation.y =
-      Math.sin(state.clock.elapsedTime * ambience.driftSpeed) * 0.03
-  })
+  // Reporting the layout upward must not itself cause a re-render that
+  // produces a new layout object, or the two chase each other forever.
+  useEffect(() => {
+    onLayout(layout)
+  }, [layout, onLayout])
+
+  // Shift the bookcase so its full drawn extent straddles the origin, which
+  // is what the camera frames against.
+  const centreY = -(layout.extentTop + layout.extentBottom) / 2
+
+  // One extra row's worth of margin either side, so a row is already built by
+  // the time it scrolls into view rather than popping in.
+  const band = useMemo(() => {
+    const half = VIEW_HEIGHT / 2 + 1.6
+    return { min: scrollY - centreY - half, max: scrollY - centreY + half }
+  }, [scrollY, centreY])
 
   function handleDragStart(item: CollectionItem) {
-    setDragging(item)
+    // A filtered shelf shows only part of itself, so a drop slot computed
+    // against it would renumber records it cannot see.
+    if (searchActive) return
+    const placed = layout.rows.flatMap((row) => row.cases).find((entry) => entry.item.id === item.id)
+    setDragging({ item, w: placed?.width ?? 0.6, h: placed?.height ?? 0.8 })
     setDropTarget(null)
   }
 
   function handleDrop(target: DropTarget | null) {
-    if (dragging && target) onMove(dragging.id, target)
+    if (dragging && target) onMove(dragging.item.id, target)
     setDragging(null)
     setDropTarget(null)
   }
 
   return (
     <>
-      <color attach="background" args={['#08060a']} />
-      <fog attach="fog" args={['#08060a', ambience.fogNear, ambience.fogFar]} />
+      <color attach="background" args={['#07050a']} />
+      <fog attach="fog" args={['#07050a', ambience.fogNear, ambience.fogFar]} />
 
-      {/* The room is meant to be dark, but the artwork is the point of it —
-          the covers have to read clearly before the mood does. */}
-      <ambientLight intensity={0.55} />
-      <hemisphereLight args={[ambience.keyColor, '#100b16', 0.5]} />
-
-      {/* Key light, warm, high and forward like a candle sconce */}
+      {/* A low wash so nothing is ever pure black, then the candles do the
+          real work of lighting the shelves from within the furniture. */}
+      <ambientLight intensity={0.4} />
+      <hemisphereLight args={[ambience.keyColor, '#0d0913', 0.42]} />
       <pointLight
-        position={[1.8, 1.6, 5.0]}
-        intensity={ambience.keyIntensity}
+        position={[2.4, centreY + 0.9, 5.2]}
+        intensity={ambience.keyIntensity * 0.7}
         color={ambience.keyColor}
         distance={26}
-        decay={1.6}
-      />
-      {/* Cold rim from the left, to keep the uprights off flat black */}
-      <pointLight
-        position={[-5.0, -0.8, 3.2]}
-        intensity={22}
-        color={ambience.rimColor}
-        distance={18}
         decay={1.7}
       />
-      {/* Flat frontal fill so sleeves at the edges are not lost to falloff */}
-      <directionalLight position={[0, 1.5, 6]} intensity={0.8} color="#e8d9c8" />
-      <IdleDrift speed={ambience.driftSpeed} enabled={!reducedMotion} />
-      <FitCamera layout={layout} />
+      <pointLight
+        position={[-4.6, centreY - 1.4, 3.4]}
+        intensity={17}
+        color={ambience.rimColor}
+        distance={18}
+        decay={1.8}
+      />
+      <directionalLight position={[0, 2, 6]} intensity={0.62} color="#e6d5c2" />
 
       <group ref={groupRef} position={[0, centreY, 0]}>
         <Bookcase
           layout={layout}
+          band={band}
           selectedId={selectedId}
-          draggingId={dragging?.id ?? null}
-          searchActive={searchActive}
-          matchedIds={matchedIds}
+          draggingId={dragging?.item.id ?? null}
+          reducedMotion={reducedMotion}
           onSelect={onSelect}
           onDragStart={handleDragStart}
           dropTarget={dropTarget}
         />
 
+        {!reducedMotion && (
+          <Motes spread={{ x: layout.width + 1, y: Math.max(layout.height, 3) }} />
+        )}
+
         {dragging && (
           <DragLayer
-            item={dragging}
+            item={dragging.item}
+            size={{ w: dragging.w, h: dragging.h }}
             layout={layout}
             onHover={setDropTarget}
             onDrop={handleDrop}
@@ -266,22 +385,8 @@ function SceneContents({
         )}
       </group>
 
-      <OrbitControls
-        makeDefault
-        enabled={!dragging}
-        enablePan
-        screenSpacePanning
-        target={[0, 0, 0]}
-        minPolarAngle={Math.PI / 2 - 0.45}
-        maxPolarAngle={Math.PI / 2 + 0.3}
-        minAzimuthAngle={-0.6}
-        maxAzimuthAngle={0.6}
-        minDistance={3}
-        maxDistance={16}
-        enableDamping
-        dampingFactor={0.08}
-        zoomSpeed={0.7}
-      />
+      <StaticCamera layout={layout} scrollY={scrollY} reducedMotion={reducedMotion} />
+      {import.meta.env.DEV && <TestProbe layout={layout} band={band} />}
     </>
   )
 }
@@ -297,7 +402,6 @@ function ContextLossGuard({ onLost }: { onLost: () => void }) {
   useEffect(() => {
     const canvas = gl.domElement
     const handleLost = (event: Event) => {
-      // Preventing the default is what allows a restore to be attempted.
       event.preventDefault()
       onLost()
     }
@@ -308,8 +412,58 @@ function ContextLossGuard({ onLost }: { onLost: () => void }) {
   return null
 }
 
-export function ShelfScene({ cinematicEffects, ...contentProps }: ShelfSceneProps) {
+export function ShelfScene({ cinematicEffects, focusShelfId, ...contentProps }: ShelfSceneProps) {
   const [contextLost, setContextLost] = useState(false)
+  const [scrollY, setScrollY] = useState(0)
+  const [bounds, setBounds] = useState({ min: 0, max: 0 })
+  const [layout, setLayout] = useState<BookcaseLayout | null>(null)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+
+  const handleLayout = useCallback((layout: BookcaseLayout) => {
+    setLayout(layout)
+    const drawnHeight = layout.extentTop - layout.extentBottom
+    const travel = Math.max(0, (drawnHeight - VIEW_HEIGHT) / 2)
+
+    // Bail out when nothing actually moved. Setting a fresh object every time
+    // gives React a new value to diff against, which re-renders the scene,
+    // which reports its layout again — an update loop that pins the main
+    // thread and never settles.
+    setBounds((current) =>
+      current.min === -travel && current.max === travel
+        ? current
+        : { min: -travel, max: travel },
+    )
+    setScrollY((current) => MathUtils.clamp(current, -travel, travel))
+  }, [])
+
+  // Jumping to a shelf from the sidebar, which is the only practical way to
+  // navigate a bookcase two dozen rows tall.
+  useEffect(() => {
+    if (focusShelfId === undefined || !layout) return
+    const row = layout.rows.find((candidate) => candidate.shelfId === focusShelfId)
+    if (!row) return
+
+    const centreY = -(layout.extentTop + layout.extentBottom) / 2
+    setScrollY(MathUtils.clamp(centreY + row.y, bounds.min, bounds.max))
+  }, [focusShelfId, layout, bounds])
+
+  useEffect(() => {
+    const element = wrapperRef.current
+    if (!element) return
+
+    function handleWheel(event: WheelEvent) {
+      if (bounds.max === 0) return
+      // Only intercept the page's scroll when there is somewhere to go, so a
+      // short bookcase never traps the wheel.
+      event.preventDefault()
+      setScrollY((current) =>
+        MathUtils.clamp(current - event.deltaY * 0.0022, bounds.min, bounds.max),
+      )
+    }
+
+    element.addEventListener('wheel', handleWheel, { passive: false })
+    return () => element.removeEventListener('wheel', handleWheel)
+  }, [bounds])
 
   if (contextLost) {
     return (
@@ -331,20 +485,27 @@ export function ShelfScene({ cinematicEffects, ...contentProps }: ShelfSceneProp
   }
 
   return (
-    <Canvas
-      camera={{ position: [0, 0, 9], fov: 48 }}
-      dpr={[1, 1.5]}
-      shadows={false}
-      gl={{ antialias: true, powerPreference: 'high-performance' }}
-    >
-      <ContextLossGuard onLost={() => setContextLost(true)} />
-      <SceneContents {...contentProps} />
-      {cinematicEffects && (
-        <EffectComposer>
-          <Bloom intensity={0.42} luminanceThreshold={0.55} luminanceSmoothing={0.3} mipmapBlur />
-          <Vignette eskil={false} offset={0.24} darkness={0.82} />
-        </EffectComposer>
+    <div ref={wrapperRef} className="h-full w-full">
+      <Canvas
+        camera={{ position: [0, 0, CAMERA_DISTANCE], fov: 46 }}
+        dpr={[1, 1.5]}
+        gl={{ antialias: true, powerPreference: 'high-performance' }}
+      >
+        <ContextLossGuard onLost={() => setContextLost(true)} />
+        <SceneContents {...contentProps} scrollY={scrollY} onLayout={handleLayout} />
+        {cinematicEffects && (
+          <EffectComposer>
+            <Bloom intensity={0.55} luminanceThreshold={0.62} luminanceSmoothing={0.32} mipmapBlur />
+            <Vignette eskil={false} offset={0.22} darkness={0.86} />
+          </EffectComposer>
+        )}
+      </Canvas>
+
+      {bounds.max > 0 && (
+        <p className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-void-950/70 px-4 py-1.5 text-[0.65rem] uppercase tracking-[0.22em] text-bone-400/80 backdrop-blur-sm">
+          Scroll to move up and down the shelves
+        </p>
       )}
-    </Canvas>
+    </div>
   )
 }

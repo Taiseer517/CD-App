@@ -94,6 +94,29 @@ src/
 The 3D stack is lazy-loaded and kept in its own bundle chunk, so the grid pages
 never pay for three.js. Nothing outside `src/scenes/` may import from it.
 
+### Built for a large collection
+
+Shelf rows are virtualised and cover textures are reference-counted, resampled
+and capped, so cost is set by what is on screen rather than by how much you
+own. Measured at 305 records: unchanged frame rate and memory versus ten, and
+stable after scrolling to the bottom. A shelf too full for one row spills onto
+a continuation row, and the bookcase itself steps up in size as the collection
+grows.
+
+Search filters the shelf rather than dimming it, and pauses rearranging while
+active — a drop computed against a partly-visible shelf would renumber records
+it cannot see.
+
+## Safety
+
+The site is public; the collection is not. Records live in IndexedDB and in a
+file on your own machine — nothing is uploaded, and there is no server. No
+credential is in the bundle. Two hosts are contacted at runtime, both
+read-only and unauthenticated: MusicBrainz and the Cover Art Archive.
+
+GitHub Pages on the free tier needs a public repository, so the starter
+`collection.json` in this repo is public. Your real collection never enters it.
+
 ## Notes
 
 - `PLAN.md` records the architecture decisions and what is still outstanding.

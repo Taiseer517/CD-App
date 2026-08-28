@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { CollectionItemSchema, type CollectionItem, type Shelf } from '../../data/schema'
-import { CASE_DIMENSIONS, MAX_BOOKCASE_WIDTH } from '../dimensions'
-import { layoutBookcase, reindexAfterMove, slotIndexAt, UNFILED_NAME } from '../layout'
+import { bookcaseWidthFor, ROW_STANDARD_HEIGHT } from '../dimensions'
+import { itemsOnShelf, layoutBookcase, reindexAfterMove, slotIndexAt, UNFILED_NAME } from '../layout'
 
 let counter = 0
 function make(overrides: Partial<CollectionItem> = {}): CollectionItem {
@@ -74,7 +74,30 @@ describe('layoutBookcase', () => {
     )
 
     expect(withVinyl.rows[0].height).toBeGreaterThan(cdOnly.rows[0].height)
-    expect(withVinyl.rows[0].height).toBeGreaterThan(CASE_DIMENSIONS.vinyl.height)
+    expect(withVinyl.rows[0].caseHeight).toBe(ROW_STANDARD_HEIGHT.vinyl)
+  })
+
+  it('draws every case in a row at the same height, keeping its own shape', () => {
+    const layout = layoutBookcase(
+      [
+        make({ shelfId: 's1', type: 'vinyl' }),
+        make({ shelfId: 's1', type: 'cd' }),
+        make({ shelfId: 's1', type: 'dvd' }),
+      ],
+      [shelf('s1', 'Mixed', 0)],
+    )
+    const cases = layout.rows[0].cases
+
+    // Level with one another, the way a real rack reads...
+    const heights = new Set(cases.map((entry) => entry.height))
+    expect(heights.size).toBe(1)
+
+    // ...but still their own proportions, so a record stays square and a
+    // CD case stays taller than it is wide.
+    const byType = new Map(cases.map((entry) => [entry.item.type, entry]))
+    expect(byType.get('vinyl')!.width).toBeCloseTo(byType.get('vinyl')!.height, 2)
+    expect(byType.get('cd')!.width).toBeLessThan(byType.get('cd')!.height)
+    expect(byType.get('cd')!.width).toBeLessThan(byType.get('vinyl')!.width)
   })
 
   it('rests every case on its plank rather than floating mid-row', () => {
@@ -83,32 +106,89 @@ describe('layoutBookcase', () => {
       [shelf('s1', 'Mixed', 0)],
     )
 
-    for (const placed of layout.rows[0].cases) {
-      const bottom = placed.y - CASE_DIMENSIONS[placed.item.type].height / 2
-      // Every case bottom sits at the same height: the surface of the plank.
-      expect(bottom).toBeCloseTo(layout.rows[0].plankY + 0.04 + 0.14, 1)
-    }
+    const bottoms = layout.rows[0].cases.map((placed) => placed.y - placed.height / 2)
+    // Every case bottom sits at the same height: the surface of the plank.
+    expect(Math.max(...bottoms) - Math.min(...bottoms)).toBeLessThan(0.001)
   })
 
-  it('compresses a packed row instead of growing wider than the bookcase', () => {
-    const many = Array.from({ length: 40 }, () => make({ shelfId: 's1' }))
-    const layout = layoutBookcase(many, [shelf('s1', 'Packed', 0)])
-    const row = layout.rows[0]
-
-    const span = (row.cases.length - 1) * row.pitch
-    expect(span).toBeLessThanOrEqual(MAX_BOOKCASE_WIDTH)
-    expect(row.pitch).toBeLessThan(CASE_DIMENSIONS.cd.width)
-  })
-
-  it('sizes the bookcase to its contents rather than a fixed width', () => {
+  it('gives a larger collection a larger piece of furniture, in steps', () => {
     const small = layoutBookcase([make({ shelfId: 's1' })], [shelf('s1', 'Few', 0)])
     const large = layoutBookcase(
-      Array.from({ length: 12 }, () => make({ shelfId: 's1' })),
+      Array.from({ length: 300 }, () => make({ shelfId: 's1' })),
       [shelf('s1', 'Many', 0)],
     )
 
-    expect(small.width).toBeLessThan(large.width)
-    expect(large.width).toBeLessThanOrEqual(MAX_BOOKCASE_WIDTH)
+    expect(small.width).toBe(bookcaseWidthFor(1))
+    expect(large.width).toBe(bookcaseWidthFor(300))
+    expect(large.width).toBeGreaterThan(small.width)
+  })
+
+  it('sizes a shelf by its commonest medium, not its tallest item', () => {
+    // One record filed among a hundred CDs must not resize the whole shelf.
+    const items = [
+      ...Array.from({ length: 100 }, () => make({ shelfId: 's1', type: 'cd' })),
+      make({ shelfId: 's1', type: 'vinyl' }),
+    ]
+    const layout = layoutBookcase(items, [shelf('s1', 'Discs', 0)])
+
+    expect(layout.rows[0].caseHeight).toBe(ROW_STANDARD_HEIGHT.cd)
+  })
+
+  it('still sizes a record shelf for records', () => {
+    const items = [
+      ...Array.from({ length: 8 }, () => make({ shelfId: 's1', type: 'vinyl' })),
+      make({ shelfId: 's1', type: 'cd' }),
+    ]
+    const layout = layoutBookcase(items, [shelf('s1', 'LPs', 0)])
+
+    expect(layout.rows[0].caseHeight).toBe(ROW_STANDARD_HEIGHT.vinyl)
+  })
+
+  it('keeps a large collection to a workable number of rows', () => {
+    const layout = layoutBookcase(
+      Array.from({ length: 300 }, () => make({ shelfId: 's1', type: 'cd' })),
+      [shelf('s1', 'Discs', 0)],
+    )
+
+    // A hundred-row tower is unusable; the wider case keeps it far shorter.
+    expect(layout.rows.length).toBeLessThan(30)
+  })
+
+  it('spills a shelf onto continuation rows instead of squeezing it', () => {
+    const many = Array.from({ length: 40 }, () => make({ shelfId: 's1' }))
+    const layout = layoutBookcase(many, [shelf('s1', 'Packed', 0)])
+
+    const shelfRows = layout.rows.filter((row) => row.shelfId === 's1')
+    expect(shelfRows.length).toBeGreaterThan(1)
+    expect(shelfRows[0].continued).toBe(false)
+    expect(shelfRows[1].continued).toBe(true)
+
+    // Every record is still on the shelf exactly once, in order.
+    const placed = itemsOnShelf(layout, 's1')
+    expect(placed).toHaveLength(40)
+    expect(new Set(placed.map((i) => i.id)).size).toBe(40)
+  })
+
+  it('keeps continuation rows aligned with the row above', () => {
+    const layout = layoutBookcase(
+      Array.from({ length: 25 }, () => make({ shelfId: 's1' })),
+      [shelf('s1', 'Packed', 0)],
+    )
+    const shelfRows = layout.rows.filter((row) => row.shelfId === 's1')
+
+    expect(new Set(shelfRows.map((row) => row.pitch)).size).toBe(1)
+  })
+
+  it('indexes a drop on a continuation row against the whole shelf', () => {
+    const layout = layoutBookcase(
+      Array.from({ length: 40 }, () => make({ shelfId: 's1' })),
+      [shelf('s1', 'Packed', 0)],
+    )
+    const second = layout.rows.filter((row) => row.shelfId === 's1')[1]
+
+    // Dropping at the far left of the second row is not slot zero of the
+    // shelf — it is the first slot of that row's own span.
+    expect(slotIndexAt(second, -99)).toBe(second.startIndex)
   })
 
   it('never lets a row overflow the case it is drawn inside', () => {
@@ -118,7 +198,8 @@ describe('layoutBookcase', () => {
         [shelf('s1', 'Row', 0)],
       )
       const row = layout.rows[0]
-      const span = (row.cases.length - 1) * row.pitch + CASE_DIMENSIONS.cd.width
+      const widest = Math.max(...row.cases.map((c) => c.width))
+      const span = (row.cases.length - 1) * row.pitch + widest
       expect(span).toBeLessThanOrEqual(layout.width + 0.01)
     }
   })

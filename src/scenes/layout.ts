@@ -1,12 +1,15 @@
 import type { CollectionItem, Shelf } from '../data/schema'
 import {
+  aspectOf,
+  bookcaseWidthFor,
   CASE_DIMENSIONS,
   CASE_GAP,
-  MAX_BOOKCASE_WIDTH,
-  MIN_BOOKCASE_WIDTH,
-  MIN_CASE_PITCH,
+  CROWN_HEIGHT,
   PLANK_THICKNESS,
+  PLINTH_HEIGHT,
+  ROW_STANDARD_HEIGHT,
   SHELF_HEADROOM,
+  SHELF_INSET,
 } from './dimensions'
 
 export interface PlacedCase {
@@ -14,20 +17,32 @@ export interface PlacedCase {
   /** Centre of the case, relative to the bookcase origin. */
   x: number
   y: number
-  /** Slot index within the row, used when working out where a drag landed. */
+  /** Drawn size — every case in a row shares its height. */
+  width: number
+  height: number
+  depth: number
+  /** Position within the whole shelf, not just this visual row. */
   index: number
 }
 
 export interface RowLayout {
-  /** null is the implicit Unfiled row, which always exists and cannot be deleted. */
+  /** Width of the bookcase this row belongs to. */
+  width: number
+  /** null is the implicit Unfiled row, which cannot be renamed or deleted. */
   shelfId: string | null
   name: string
   accent: string
   /** Centre line of the row's usable space. */
   y: number
   height: number
+  /** Shared drawn height of every case in this row. */
+  caseHeight: number
   plankY: number
   pitch: number
+  /** Where this visual row starts within its shelf, for a shelf that spilled. */
+  startIndex: number
+  /** True when this row is a continuation of the shelf above it. */
+  continued: boolean
   cases: PlacedCase[]
 }
 
@@ -35,69 +50,65 @@ export interface BookcaseLayout {
   rows: RowLayout[]
   width: number
   height: number
+  /** Full drawn extent including crown and plinth, for framing the camera. */
+  extentTop: number
+  extentBottom: number
+}
+
+/** Centre of a case standing in a given slot, measured from the bookcase mid-line. */
+export function slotX(index: number, pitch: number, caseWidth: number, width: number): number {
+  return -width / 2 + SHELF_INSET + index * pitch + caseWidth / 2
 }
 
 export const UNFILED_NAME = 'Unfiled'
 
-function rowHeight(items: CollectionItem[]): number {
-  const tallest = items.reduce(
-    (max, item) => Math.max(max, CASE_DIMENSIONS[item.type].height),
-    CASE_DIMENSIONS.cd.height,
-  )
-  return tallest + SHELF_HEADROOM
-}
-
 /**
- * Spacing within a row. Cases sit side by side until the row is full, then the
- * pitch tightens and they overlap — the way records do when a shelf is packed
- * rather than the row silently growing wider than the bookcase.
- */
-function widestCase(items: CollectionItem[]): number {
-  return items.reduce((max, item) => Math.max(max, CASE_DIMENSIONS[item.type].width), 0)
-}
-
-function naturalPitch(items: CollectionItem[]): number {
-  return items.length === 0 ? 0 : widestCase(items) + CASE_GAP
-}
-
-/** Total horizontal extent of a row: gaps between centres, plus one case. */
-function spanAt(items: CollectionItem[], pitch: number): number {
-  if (items.length === 0) return 0
-  return (items.length - 1) * pitch + widestCase(items)
-}
-
-/**
- * Spacing within a row. Cases sit side by side until the row is full, then the
- * pitch tightens and they overlap — the way records do when a shelf is packed
- * rather than the row silently growing wider than the bookcase.
- */
-function rowPitch(items: CollectionItem[], bookcaseWidth: number): number {
-  if (items.length <= 1) return naturalPitch(items)
-  const natural = naturalPitch(items)
-  if (spanAt(items, natural) <= bookcaseWidth) return natural
-  // Solve for the pitch that lands the row exactly on the inside edges.
-  const fitted = (bookcaseWidth - widestCase(items)) / (items.length - 1)
-  return Math.max(MIN_CASE_PITCH, fitted)
-}
-
-/**
- * Sizes the case to what it holds. A fixed width left a nine-record shelf
- * marooned in the middle of a bookcase built for forty, which pushed the
- * camera so far back the sleeves became unreadable.
+ * The height every case in this row is drawn at, taken from the *commonest*
+ * medium on the shelf rather than the tallest.
  *
- * A row too long to fit even at the tightest pitch widens the whole case
- * past its normal maximum rather than being drawn overflowing its own frame.
+ * A shelf is a fixed opening in a real bookcase, and one record filed among
+ * three hundred CDs should not resize the opening — sizing by the tallest
+ * item made every CD render at 12-inch scale and turned the case into a
+ * hundred-row tower.
  */
-function deriveWidth(rows: CollectionItem[][]): number {
-  let widestNatural = 0
-  let widestCompressed = 0
-  for (const items of rows) {
-    widestNatural = Math.max(widestNatural, spanAt(items, naturalPitch(items)))
-    widestCompressed = Math.max(widestCompressed, spanAt(items, MIN_CASE_PITCH))
-  }
+function standardHeight(items: CollectionItem[]): number {
+  if (items.length === 0) return ROW_STANDARD_HEIGHT.cd
 
-  const preferred = Math.min(MAX_BOOKCASE_WIDTH, widestNatural + 0.4)
-  return Math.max(MIN_BOOKCASE_WIDTH, widestCompressed, preferred)
+  const tally = new Map<CollectionItem['type'], number>()
+  for (const item of items) tally.set(item.type, (tally.get(item.type) ?? 0) + 1)
+
+  let commonest: CollectionItem['type'] = 'cd'
+  let best = 0
+  for (const [type, count] of tally) {
+    if (count > best) {
+      best = count
+      commonest = type
+    }
+  }
+  return ROW_STANDARD_HEIGHT[commonest]
+}
+
+/** Drawn width of one case once scaled to the row's shared height. */
+function drawnWidth(item: CollectionItem, height: number): number {
+  return height * aspectOf(item.type)
+}
+
+function widestCase(items: CollectionItem[], height: number): number {
+  return items.reduce((max, item) => Math.max(max, drawnWidth(item, height)), 0)
+}
+
+/**
+ * How many cases fit across the bookcase at comfortable spacing. A shelf
+ * holding more than this spills onto a continuation row rather than squeezing
+ * its contents into an unreadable smear — the bookcase is a fixed piece of
+ * furniture, so it is the shelving that gives, exactly as it would in a room.
+ */
+function rowCapacity(items: CollectionItem[], height: number, width: number): number {
+  if (items.length === 0) return 1
+  const widest = widestCase(items, height)
+  const pitch = widest + CASE_GAP
+  const usable = width - SHELF_INSET * 2
+  return Math.max(1, Math.floor((usable - widest) / pitch) + 1)
 }
 
 function sortForShelf(items: CollectionItem[]): CollectionItem[] {
@@ -106,6 +117,15 @@ function sortForShelf(items: CollectionItem[]): CollectionItem[] {
     // Ties happen for everything freshly imported, where every position is 0.
     return a.title.localeCompare(b.title)
   })
+}
+
+/** Every item on a shelf, in shelf order, across all its visual rows. */
+export function itemsOnShelf(layout: BookcaseLayout, shelfId: string | null): CollectionItem[] {
+  return layout.rows
+    .filter((row) => row.shelfId === shelfId)
+    .flatMap((row) => row.cases)
+    .sort((a, b) => a.index - b.index)
+    .map((entry) => entry.item)
 }
 
 /**
@@ -128,53 +148,76 @@ export function layoutBookcase(items: CollectionItem[], shelves: Shelf[]): Bookc
   )
   definitions.push({ shelfId: null, name: UNFILED_NAME, accent: '' })
 
-  const bookcaseWidth = deriveWidth(
-    definitions.map((definition) => byShelf.get(definition.shelfId) ?? []),
+  const largestShelf = Math.max(
+    0,
+    ...definitions.map((definition) => (byShelf.get(definition.shelfId) ?? []).length),
   )
+  const bookcaseWidth = bookcaseWidthFor(largestShelf)
 
   const rows: RowLayout[] = []
   let cursor = 0
 
   for (const definition of definitions) {
-    const rowItems = sortForShelf(byShelf.get(definition.shelfId) ?? [])
+    const shelfItems = sortForShelf(byShelf.get(definition.shelfId) ?? [])
     // A named shelf stays visible while empty so there is somewhere to drop
     // things; Unfiled disappears once everything has been put away.
-    if (definition.shelfId === null && rowItems.length === 0 && definitions.length > 1) continue
+    if (definition.shelfId === null && shelfItems.length === 0 && definitions.length > 1) continue
 
-    const height = rowHeight(rowItems)
-    const pitch = rowPitch(rowItems, bookcaseWidth)
-    const span = Math.max(rowItems.length - 1, 0) * pitch
-    const centreY = cursor - height / 2
+    const caseHeight = standardHeight(shelfItems)
+    const capacity = rowCapacity(shelfItems, caseHeight, bookcaseWidth)
+    const chunkCount = Math.max(1, Math.ceil(shelfItems.length / capacity))
 
-    rows.push({
-      shelfId: definition.shelfId,
-      name: definition.name,
-      accent: definition.accent,
-      y: centreY,
-      height,
-      plankY: cursor - height - PLANK_THICKNESS / 2,
-      pitch,
-      cases: rowItems.map((item, index) => ({
-        item,
-        index,
-        x: index * pitch - span / 2,
-        // Cases rest on the plank rather than floating at the row's centre.
-        y: cursor - height + SHELF_HEADROOM / 2 + CASE_DIMENSIONS[item.type].height / 2,
-      })),
-    })
+    for (let chunk = 0; chunk < chunkCount; chunk++) {
+      const startIndex = chunk * capacity
+      const chunkItems = shelfItems.slice(startIndex, startIndex + capacity)
+      const height = caseHeight + SHELF_HEADROOM
+      // Spacing comes from the shelf's capacity, not this chunk's count, so a
+      // half-full continuation row lines up with the full row above it.
+      const pitch = widestCase(shelfItems, caseHeight) + CASE_GAP
 
-    cursor -= height + PLANK_THICKNESS
+      rows.push({
+        width: bookcaseWidth,
+        shelfId: definition.shelfId,
+        name: definition.name,
+        accent: definition.accent,
+        y: cursor - height / 2,
+        height,
+        caseHeight,
+        plankY: cursor - height - PLANK_THICKNESS / 2,
+        pitch: pitch || CASE_GAP,
+        startIndex,
+        continued: chunk > 0,
+        cases: chunkItems.map((item, offset) => ({
+          item,
+          index: startIndex + offset,
+          width: drawnWidth(item, caseHeight),
+          height: caseHeight,
+          depth: CASE_DIMENSIONS[item.type].depth,
+          x: slotX(offset, pitch, drawnWidth(item, caseHeight), bookcaseWidth),
+          // Cases rest on the plank rather than floating at the row's centre.
+          y: cursor - height + SHELF_HEADROOM / 2 + caseHeight / 2,
+        })),
+      })
+
+      cursor -= height + PLANK_THICKNESS
+    }
   }
 
-  return { rows, width: bookcaseWidth, height: Math.abs(cursor) }
+  const height = Math.abs(cursor)
+  return {
+    rows,
+    width: bookcaseWidth,
+    height,
+    extentTop: CROWN_HEIGHT,
+    extentBottom: -(height + PLINTH_HEIGHT),
+  }
 }
 
-/** Where in a row a case dropped at this x belongs. */
+/** Where in the whole shelf a case dropped at this x on this row belongs. */
 export function slotIndexAt(row: RowLayout, x: number): number {
-  if (row.cases.length === 0) return 0
-  const span = Math.max(row.cases.length - 1, 0) * row.pitch
-  const raw = Math.round((x + span / 2) / row.pitch)
-  return Math.max(0, Math.min(row.cases.length, raw))
+  if (row.cases.length === 0) return row.startIndex
+  const local = Math.round((x + row.width / 2 - SHELF_INSET) / row.pitch)
+  return row.startIndex + Math.max(0, Math.min(row.cases.length, local))
 }
 
 /** Which row a drop at this height landed on. */
@@ -192,7 +235,7 @@ export function rowAt(layout: BookcaseLayout, y: number): RowLayout | null {
 }
 
 /**
- * Recomputes positions after a case is dropped into a row at a slot. Returns
+ * Recomputes positions after a case is dropped into a shelf at a slot. Returns
  * only the records whose placement actually changed, so a drag writes a
  * handful of rows rather than the whole collection.
  */
@@ -202,29 +245,29 @@ export function reindexAfterMove(
   targetShelfId: string | null,
   targetIndex: number,
 ): { id: string; shelfId: string | null; position: number }[] {
-  const source = layout.rows.find((row) => row.cases.some((entry) => entry.item.id === movedId))
-  const target = layout.rows.find((row) => row.shelfId === targetShelfId)
-  if (!source || !target) return []
+  const sourceRow = layout.rows.find((row) => row.cases.some((entry) => entry.item.id === movedId))
+  if (!sourceRow) return []
+  const moved = sourceRow.cases.find((entry) => entry.item.id === movedId)!.item
+  const sourceShelfId = sourceRow.shelfId
 
-  const moved = source.cases.find((entry) => entry.item.id === movedId)!.item
-  const remaining = target.cases.filter((entry) => entry.item.id !== movedId).map((entry) => entry.item)
-  const clamped = Math.max(0, Math.min(remaining.length, targetIndex))
-  remaining.splice(clamped, 0, moved)
+  const target = itemsOnShelf(layout, targetShelfId).filter((item) => item.id !== movedId)
+  const clamped = Math.max(0, Math.min(target.length, targetIndex))
+  target.splice(clamped, 0, moved)
 
   const changes: { id: string; shelfId: string | null; position: number }[] = []
 
-  remaining.forEach((item, index) => {
+  target.forEach((item, index) => {
     if (item.shelfId !== targetShelfId || item.position !== index) {
       changes.push({ id: item.id, shelfId: targetShelfId, position: index })
     }
   })
 
-  if (source.shelfId !== targetShelfId) {
-    source.cases
-      .filter((entry) => entry.item.id !== movedId)
-      .forEach((entry, index) => {
-        if (entry.item.position !== index) {
-          changes.push({ id: entry.item.id, shelfId: source.shelfId, position: index })
+  if (sourceShelfId !== targetShelfId) {
+    itemsOnShelf(layout, sourceShelfId)
+      .filter((item) => item.id !== movedId)
+      .forEach((item, index) => {
+        if (item.position !== index) {
+          changes.push({ id: item.id, shelfId: sourceShelfId, position: index })
         }
       })
   }

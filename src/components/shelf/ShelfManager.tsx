@@ -8,6 +8,8 @@ interface ShelfManagerProps {
   onCreate: (name: string) => Promise<void>
   onRename: (id: string, name: string) => Promise<void>
   onDelete: (id: string) => Promise<void>
+  onTidy: (id: string | null) => Promise<void>
+  onFocus: (id: string | null) => void
 }
 
 export function ShelfManager({
@@ -17,6 +19,8 @@ export function ShelfManager({
   onCreate,
   onRename,
   onDelete,
+  onTidy,
+  onFocus,
 }: ShelfManagerProps) {
   const [newName, setNewName] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -40,7 +44,7 @@ export function ShelfManager({
     <div className="rounded-lg border border-void-700 bg-void-900/50 p-4">
       <h3 className="font-display text-sm uppercase tracking-wide text-bone-400">Shelves</h3>
       <p className="mt-1 text-xs text-bone-400">
-        Drag any case from one shelf to another to rearrange them.
+        Click a name to go to that shelf. Drag any case to move it.
       </p>
 
       <ul className="mt-3 space-y-1">
@@ -62,15 +66,26 @@ export function ShelfManager({
               <>
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={() => onFocus(shelf.id)}
+                  onDoubleClick={() => {
                     setEditingId(shelf.id)
                     setEditingName(shelf.name)
                   }}
-                  className="flex-1 text-left text-bone-200 hover:text-bone-100"
+                  title="Go to this shelf — double-click to rename"
+                  className="flex-1 truncate text-left text-bone-200 hover:text-bone-100"
                 >
                   {shelf.name}
                 </button>
                 <span className="text-xs text-bone-400">{counts.get(shelf.id) ?? 0}</span>
+                <button
+                  type="button"
+                  onClick={() => onTidy(shelf.id)}
+                  title={`Sort ${shelf.name} by artist`}
+                  aria-label={`Sort the ${shelf.name} shelf by artist`}
+                  className="text-bone-400 transition-colors hover:text-velvet-300"
+                >
+                  ⇅
+                </button>
                 <button
                   type="button"
                   onClick={() => onDelete(shelf.id)}
@@ -86,8 +101,22 @@ export function ShelfManager({
 
         {unfiledCount > 0 && (
           <li className="flex items-center gap-2 border-t border-void-800 pt-2 text-sm text-bone-400">
-            <span className="flex-1 italic">Unfiled</span>
+            <button
+              type="button"
+              onClick={() => onFocus(null)}
+              className="flex-1 text-left italic hover:text-bone-200"
+            >
+              Unfiled
+            </button>
             <span className="text-xs">{unfiledCount}</span>
+            <button
+              type="button"
+              onClick={() => onTidy(null)}
+              aria-label="Sort the unfiled shelf by artist"
+              className="transition-colors hover:text-velvet-300"
+            >
+              ⇅
+            </button>
           </li>
         )}
       </ul>
@@ -109,7 +138,8 @@ export function ShelfManager({
       </form>
 
       <p className="mt-3 text-xs text-bone-400">
-        Deleting a shelf keeps its records — they move to Unfiled.
+        Double-click a name to rename it. ⇅ sorts by artist. Deleting a shelf keeps its
+        records — they move to Unfiled.
       </p>
     </div>
   )

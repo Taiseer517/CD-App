@@ -100,22 +100,44 @@ check('collection seeded with shelves', before.length > 0 && !before.every((p) =
 console.log('\nInteraction')
 const box = await page.locator('canvas').boundingBox()
 
-await page.mouse.click(box.x + 255, box.y + 143)
-await page.waitForTimeout(1600)
-const panel = await page.locator('aside h3').first().textContent().catch(() => null)
-check('clicking a case opens its details', Boolean(panel), panel ?? 'no panel')
+/**
+ * Finds a case by probing the canvas rather than trusting fixed coordinates:
+ * the bookcase is re-laid-out whenever its furniture changes, and a hard-coded
+ * click point silently starts hitting empty shelf instead of failing loudly.
+ */
+async function findCase() {
+  // The scene publishes where each visible case projects to on screen (dev
+  // builds only), so the click lands on an actual sleeve rather than on a
+  // coordinate that happened to work the day it was written.
+  const cases = await page.evaluate(() => window.__archiveCases ?? [])
+  if (cases.length === 0) return null
+  const target = cases[0]
+
+  await page.mouse.click(target.x, target.y)
+  await page.waitForTimeout(1200)
+  const title = await page.locator('aside h3').first().textContent().catch(() => null)
+  return title ? { x: target.x, y: target.y, title } : null
+}
+
+const found = await findCase()
+check('clicking a case opens its details', Boolean(found), found?.title ?? 'no case found on the canvas')
 await page.screenshot({ path: `${SHOTS}/selected.png` })
 await page.locator('aside button[aria-label="Close details"]').click().catch(() => {})
 await page.waitForTimeout(800)
 
-await page.mouse.move(box.x + 255, box.y + 143)
-await page.mouse.down()
-for (let step = 1; step <= 12; step++) {
-  await page.mouse.move(box.x + 255 + step * 6, box.y + 143 + step * 39)
-  await page.waitForTimeout(40)
+if (found) {
+  // Drag it downward onto a lower shelf.
+  await page.mouse.move(found.x, found.y)
+  await page.mouse.down()
+  const drop = box.y + box.height * 0.74
+  const steps = 14
+  for (let step = 1; step <= steps; step++) {
+    await page.mouse.move(found.x + step * 3, found.y + ((drop - found.y) * step) / steps)
+    await page.waitForTimeout(40)
+  }
+  await page.mouse.up()
+  await page.waitForTimeout(2200)
 }
-await page.mouse.up()
-await page.waitForTimeout(2000)
 
 const after = await readPlacements()
 check('dragging a case moves it and persists', JSON.stringify(before) !== JSON.stringify(after))

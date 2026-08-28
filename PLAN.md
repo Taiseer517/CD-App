@@ -155,22 +155,54 @@ caching. Pages workflow deriving `BASE_PATH` from the repository name.
   dragged into a different vertical order.
 - Optional 30s previews, loan tracking, barcode scanning by webcam.
 
-## Performance budget
+## Designing for a large collection
 
-The 3D must stay smooth or the whole conceit fails.
+Several hundred records is the case that governs the 3D design, and every
+naive choice fails there. Measured with 305 records on one shelf: 25fps and
+98MB, unchanged from ten records, and stable after scrolling to the bottom.
 
-- three.js already sits in its own rollup chunk and loads lazily. Keep it
-  that way; nothing on the grid routes may import from `src/scenes/`.
-- Cap `dpr` at 1.5 (already set). Cover textures resize to 512px before
-  upload to the GPU.
-- Only shelves near the viewport mount their cases; the rest render as
-  flat instanced spines.
-- `prefers-reduced-motion` disables idle drift and spin, and the existing
-  "simple mode" toggle stays as the non-3D route.
-- Postprocessing (bloom, DoF) stays opt-in — it is the first thing to cost
-  frames on integrated graphics.
+- **Rows are virtualised.** Only rows within the visible band plus a row of
+  margin are mounted. Frame cost is set by what is on screen, not by the
+  size of the collection.
+- **Textures are reference-counted and capped.** Sleeves are resampled to
+  320px on load and held in an LRU of 80; entries are only evicted while
+  nothing is showing them. At full resolution three hundred sleeves would be
+  hundreds of megabytes of GPU memory.
+- **A shelf spills onto continuation rows** rather than squeezing its
+  contents into an unreadable smear. The bookcase is fixed furniture; the
+  shelving is what gives.
+- **A shelf is sized by its commonest medium, not its tallest item.** One
+  record filed among three hundred CDs must not resize the whole shelf —
+  sizing by the tallest turned the case into a hundred-row tower.
+- **The bookcase itself steps up in size** with the collection: a cosy case
+  for a handful, a library wall for hundreds.
+- **At most three candles cast real light.** Every dynamic light is compiled
+  into every material's shader, so a tall case full of them costs far more
+  than it looks.
+- **Search filters the shelf rather than dimming it,** and pauses dragging
+  while active, so a drop cannot renumber a shelf it can only partly see.
+- Structural wood uses Lambert rather than physical materials; the sleeves,
+  discs and records keep the expensive one, where it shows.
+- The 3D stack stays lazy-loaded in its own chunk. Nothing outside
+  `src/scenes/` may import from it.
+- `prefers-reduced-motion` stops the drift, the flicker and the spin.
 
----
+## Safety
+
+The site is public; the collection is not.
+
+- Her records live in IndexedDB and in a file on her own machine. Nothing is
+  ever uploaded, and there is no server to breach.
+- No credential of any kind is in the bundle — verified against the build.
+  Note that GitHub Pages on the free tier requires a public repository, so
+  the starter `collection.json` committed here is public. Her real
+  collection never enters the repo.
+- Two hosts are contacted at runtime, both read-only and unauthenticated:
+  MusicBrainz and the Cover Art Archive. They see her IP address and what
+  she searches for.
+- Artwork URLs are sanitised before reaching the DOM. One is interpolated
+  into a CSS `url()`, where a crafted string could otherwise close the
+  function and append rules of its own.
 
 ## Connector setup  *(maintainer, one time)*
 
