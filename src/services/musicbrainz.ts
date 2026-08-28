@@ -71,50 +71,58 @@ function titleCase(value: string): string {
   return value.replace(/\b[a-z]/g, (char) => char.toUpperCase())
 }
 
-function escapeLucene(value: string): string {
-  return value.replace(/([+\-!(){}[\]^"~*?:\\/]|&&|\|\|)/g, '\\$1')
+/** Raised when the service is unavailable, as against having found nothing. */
+export class ServiceBusyError extends Error {
+  constructor() {
+    super('MusicBrainz is busy right now.')
+    this.name = 'ServiceBusyError'
+  }
 }
 
+// Measured against the live service: a busy spell routinely swallows two
+// attempts in a row, so three retries is not enough headroom. Five tries over
+// about twelve seconds is still better than telling her a record she owns
+// does not exist.
+const RETRY_DELAYS_MS = [800, 1600, 3200, 6000]
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+/**
+ * MusicBrainz answers a good share of requests with 503 "server busy" — not
+ * because we are over the rate limit, but because the public instance is
+ * genuinely loaded. Without a retry those come back as "nothing matched",
+ * which is the wrong thing to tell someone whose record does exist.
+ */
 async function request<T>(url: string): Promise<T> {
-  const response = await throttle(() => fetch(url, { headers: { Accept: 'application/json' } }))
-  if (response.status === 503) {
-    throw new Error('MusicBrainz is rate limiting us. Wait a moment and try again.')
-  }
-  if (!response.ok) {
+  for (let attempt = 0; ; attempt++) {
+    const response = await throttle(() => fetch(url, { headers: { Accept: 'application/json' } }))
+
+    if (response.ok) return response.json() as Promise<T>
+
+    if (response.status === 503 && attempt < RETRY_DELAYS_MS.length) {
+      await wait(RETRY_DELAYS_MS[attempt])
+      continue
+    }
+    if (response.status === 503) throw new ServiceBusyError()
+
     throw new Error(`MusicBrainz returned ${response.status}`)
   }
-  return response.json() as Promise<T>
 }
 
-export async function searchReleases(
-  title: string,
-  artist: string,
-  signal?: AbortSignal,
-): Promise<ReleaseSummary[]> {
-  const terms: string[] = []
-  if (title.trim()) terms.push(`release:"${escapeLucene(title.trim())}"`)
-  if (artist.trim()) terms.push(`artist:"${escapeLucene(artist.trim())}"`)
-  if (terms.length === 0) return []
-
-  const url = `${API}/release/?query=${encodeURIComponent(terms.join(' AND '))}&fmt=json&limit=12`
-  const data = await request<{ releases?: RawRelease[] }>(url)
-  if (signal?.aborted) return []
-
-  return (data.releases ?? []).map((release) => {
-    const { label, catalogNumber } = firstLabel(release)
-    return {
-      id: release.id,
-      title: release.title ?? '',
-      artist: creditedArtist(release),
-      date: release.date ?? '',
-      country: release.country ?? '',
-      label,
-      catalogNumber,
-      format: mediaFormat(release),
-      trackCount: (release.media ?? []).reduce((sum, m) => sum + (m['track-count'] ?? 0), 0),
-      barcode: release.barcode ?? '',
-    }
-  })
+function toSummary(release: RawRelease): ReleaseSummary {
+  const { label, catalogNumber } = firstLabel(release)
+  return {
+    id: release.id,
+    title: release.title ?? '',
+    artist: creditedArtist(release),
+    date: release.date ?? '',
+    country: release.country ?? '',
+    label,
+    catalogNumber,
+    format: mediaFormat(release),
+    trackCount: (release.media ?? []).reduce((sum, m) => sum + (m['track-count'] ?? 0), 0),
+    barcode: release.barcode ?? '',
+  }
 }
 
 /**
@@ -187,7 +195,10 @@ export async function searchAlbums(freeText: string): Promise<ReleaseSummary[]> 
   const trimmed = freeText.trim()
   if (!trimmed) return []
 
-  const url = `${API}/release/?query=${encodeURIComponent(trimmed)}&fmt=json&limit=40`
+  // A hundred candidates rather than forty: a common word like "kisses" can
+  // match tens of thousands of releases, and the one she means has to be in
+  // the pool before the re-ranking below can lift it to the top.
+  const url = `${API}/release/?query=${encodeURIComponent(trimmed)}&fmt=json&limit=100`
   const data = await request<{ releases?: RawRelease[] }>(url)
 
   const terms = trimmed
@@ -196,25 +207,16 @@ export async function searchAlbums(freeText: string): Promise<ReleaseSummary[]> 
     .filter((term) => term.length > 1)
 
   const summaries = (data.releases ?? []).map((release) => {
-    const { label, catalogNumber } = firstLabel(release)
-    const artist = creditedArtist(release)
-    const title = release.title ?? ''
-    const haystack = `${title} ${artist}`.toLowerCase()
-    const covered = terms.filter((term) => haystack.includes(term)).length
+    const summary = toSummary(release)
+    const haystack = `${summary.title} ${summary.artist}`.toLowerCase()
+    // Prefix rather than exact match, so "Bloody Kiss" still finds
+    // "Bloody Kisses" and a half-remembered title is not a dead end.
+    const covered = terms.filter((term) =>
+      haystack.split(/\s+/).some((word) => word.startsWith(term)),
+    ).length
 
     return {
-      summary: {
-        id: release.id,
-        title,
-        artist,
-        date: release.date ?? '',
-        country: release.country ?? '',
-        label,
-        catalogNumber,
-        format: mediaFormat(release),
-        trackCount: (release.media ?? []).reduce((sum, m) => sum + (m['track-count'] ?? 0), 0),
-        barcode: release.barcode ?? '',
-      } satisfies ReleaseSummary,
+      summary,
       coverage: terms.length === 0 ? 1 : covered / terms.length,
       // A release with a known date and country is a real pressing someone
       // catalogued properly, rather than a bare stub.

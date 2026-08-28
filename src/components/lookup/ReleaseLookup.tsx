@@ -2,7 +2,12 @@ import { useState } from 'react'
 import type { CollectionItemInput } from '../../data/schema'
 import { fetchArtwork } from '../../services/coverArt'
 import { extractDominantColor } from '../../services/dominantColor'
-import { getRelease, searchReleases, type ReleaseSummary } from '../../services/musicbrainz'
+import {
+  getRelease,
+  searchAlbums,
+  ServiceBusyError,
+  type ReleaseSummary,
+} from '../../services/musicbrainz'
 
 interface ReleaseLookupProps {
   title: string
@@ -37,13 +42,23 @@ export function ReleaseLookup({ title, artist, onApply }: ReleaseLookupProps) {
     setError(null)
     setResults(null)
     try {
-      const found = await searchReleases(title, artist)
+      // Both fields go in as one phrase. Matching them as exact fielded terms
+      // meant "Bloody Kiss" or "Sisters of Mercy" without its "The" found
+      // nothing at all; the free-text search re-ranks instead of demanding
+      // she already know the catalogued spelling.
+      const found = await searchAlbums(`${title} ${artist}`.trim())
       setResults(found)
       if (found.length === 0) {
-        setError('Nothing matched. Try just the album title, or check the spelling.')
+        setError('Nothing matched. Try fewer words, or check the spelling.')
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      setError(
+        err instanceof ServiceBusyError
+          ? 'MusicBrainz is busy at the moment. Your record is probably there — try again shortly.'
+          : err instanceof Error
+            ? err.message
+            : String(err),
+      )
     } finally {
       setSearching(false)
     }

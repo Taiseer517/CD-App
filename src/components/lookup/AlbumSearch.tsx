@@ -3,7 +3,12 @@ import type { CollectionItemInput } from '../../data/schema'
 import { emptyCollectionItemInput } from '../../data/schema'
 import { fetchArtwork, frontCoverUrl } from '../../services/coverArt'
 import { extractDominantColor } from '../../services/dominantColor'
-import { getRelease, searchAlbums, type ReleaseSummary } from '../../services/musicbrainz'
+import {
+  getRelease,
+  searchAlbums,
+  ServiceBusyError,
+  type ReleaseSummary,
+} from '../../services/musicbrainz'
 
 interface AlbumSearchProps {
   /** Wording differs between hunting for a wishlist and cataloguing a shelf. */
@@ -49,9 +54,15 @@ export function AlbumSearch({ actionLabel, placeholder, onAdd }: AlbumSearchProp
     try {
       const found = await searchAlbums(query)
       setResults(found)
-      if (found.length === 0) setError('Nothing matched. Try a different spelling.')
+      if (found.length === 0) setError('Nothing matched. Try fewer words, or a different spelling.')
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      setError(
+        err instanceof ServiceBusyError
+          ? 'MusicBrainz is busy at the moment. What you are after is probably there — try again shortly.'
+          : err instanceof Error
+            ? err.message
+            : String(err),
+      )
     } finally {
       setSearching(false)
     }
