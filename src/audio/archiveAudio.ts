@@ -237,22 +237,28 @@ function startAmbience(n: Nodes): () => void {
   }
 
   let index = 4
-  const melody = window.setInterval(() => {
+
+  const play = () => {
     // Rest about a third of the time: the silences are what make it a
     // carillon drifting through a house rather than a tune being played at
     // you.
-    if (Math.random() < 0.34) return
+    if (Math.random() < 0.28) return
 
     const step = [-2, -1, -1, 1, 1, 2][Math.floor(Math.random() * 6)]
     index = Math.max(0, Math.min(A_MINOR.length - 1, index + step))
     strike(n, A_MINOR[index], 0.16, bells, 4.5)
 
     // Now and then a second bell just after, a third or fifth away.
-    if (Math.random() < 0.28) {
+    if (Math.random() < 0.3) {
       const partner = Math.max(0, Math.min(A_MINOR.length - 1, index + (Math.random() < 0.5 ? 2 : 4)))
       window.setTimeout(() => strike(n, A_MINOR[partner], 0.1, bells, 4), 260 + Math.random() * 340)
     }
-  }, 2600)
+  }
+
+  // Ring once as it fades in rather than leaving several seconds of silence
+  // to wonder whether the switch did anything.
+  window.setTimeout(play, 900)
+  const melody = window.setInterval(play, 2400)
 
   // The tenor bell, rarely, an octave and a half below the melody.
   const tenor = window.setInterval(() => {
@@ -275,6 +281,11 @@ function startAmbience(n: Nodes): () => void {
 export const archiveAudio = {
   /** Must be called from a user gesture; browsers block audio otherwise. */
   async setAmbience(state: Ambience) {
+    // Turning off something that was never on must not build the audio graph.
+    // React runs effect cleanups on mount in StrictMode, and that alone was
+    // enough to open an AudioContext on page load.
+    if (state === 'off' && !nodes) return
+
     const n = ensure()
     if (!n) return
 
