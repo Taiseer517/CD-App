@@ -5,6 +5,7 @@ const links = [
   { to: '/', label: 'Collection', end: true },
   { to: '/shelf', label: 'The Wall' },
   { to: '/wishlist', label: 'Wishlist' },
+  { to: '/shuffle', label: 'Shuffle' },
   { to: '/stats', label: 'Stats' },
   { to: '/admin', label: 'Admin' },
 ]

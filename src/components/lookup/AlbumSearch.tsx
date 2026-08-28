@@ -1,5 +1,8 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { findDuplicate, type DuplicateMatch } from '../../data/duplicates'
 import { emptyCollectionItemInput, type CollectionItemInput } from '../../data/schema'
+import { useCollectionStore } from '../../store/useCollectionStore'
 import { fetchArtwork, frontCoverUrl } from '../../services/coverArt'
 import { extractDominantColor } from '../../services/dominantColor'
 import {
@@ -50,6 +53,8 @@ export function AlbumSearch({ actionLabel, placeholder, onAdd }: AlbumSearchProp
   const [added, setAdded] = useState<Set<string>>(new Set())
   const [error, setError] = useState<string | null>(null)
   const [missingArt, setMissingArt] = useState<Set<string>>(new Set())
+  const [duplicate, setDuplicate] = useState<{ hit: DuplicateMatch; pending: SearchHit } | null>(null)
+  const collection = useCollectionStore((state) => state.items)
 
   async function handleSearch(event: React.FormEvent) {
     event.preventDefault()
@@ -85,8 +90,31 @@ export function AlbumSearch({ actionLabel, placeholder, onAdd }: AlbumSearchProp
     }
   }
 
-  async function handleAdd(hit: SearchHit) {
+  async function handleAdd(hit: SearchHit, force = false) {
     const id = hitId(hit)
+
+    // Check before fetching: it is easy to buy a record twice and easier
+    // still to scan one twice, and there is no sense downloading artwork
+    // for something she already owns.
+    if (!force) {
+      const existing = findDuplicate(
+        hit.kind === 'film'
+          ? { tmdbId: String(hit.film.id), title: hit.film.title }
+          : {
+              musicbrainzId: hit.release.id,
+              barcode: hit.release.barcode,
+              title: hit.release.title,
+              artistOrDirector: hit.release.artist,
+            },
+        collection,
+      )
+      if (existing) {
+        setDuplicate({ hit: existing, pending: hit })
+        return
+      }
+    }
+
+    setDuplicate(null)
     setAddingId(id)
     setError(null)
     try {
@@ -144,6 +172,41 @@ export function AlbumSearch({ actionLabel, placeholder, onAdd }: AlbumSearchProp
       </form>
 
       {error && <p className="mt-3 text-sm text-blood-300">{error}</p>}
+
+      {duplicate && (
+        <div className="mt-4 rounded-lg border border-blood-700 bg-blood-900/20 p-4">
+          <p className="text-sm text-bone-100">
+            You already have{' '}
+            <span className="font-display">{duplicate.hit.existing.title}</span>
+            {duplicate.hit.existing.artistOrDirector && (
+              <span className="text-bone-400"> by {duplicate.hit.existing.artistOrDirector}</span>
+            )}{' '}
+            — {duplicate.hit.reason}.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-3">
+            <Link
+              to={`/item/${duplicate.hit.existing.id}`}
+              className="rounded border border-velvet-700 px-3 py-1 text-xs text-bone-100 transition-colors hover:border-velvet-400"
+            >
+              Open the one you have
+            </Link>
+            <button
+              type="button"
+              onClick={() => handleAdd(duplicate.pending, true)}
+              className="rounded border border-blood-700 px-3 py-1 text-xs text-bone-200 transition-colors hover:border-blood-400"
+            >
+              {duplicate.hit.confidence === 'exact' ? 'Add it anyway' : 'Add this pressing too'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setDuplicate(null)}
+              className="rounded border border-void-700 px-3 py-1 text-xs text-bone-400 transition-colors hover:border-bone-400"
+            >
+              Never mind
+            </button>
+          </div>
+        </div>
+      )}
 
       {results && results.length > 0 && (
         <ul className="mt-5 grid gap-3 sm:grid-cols-2">
