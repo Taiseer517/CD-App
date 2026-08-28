@@ -5,11 +5,11 @@
     "type": "cd",
     "artistOrDirector": "Cradle of Filth",
     "year": 1998,
-    "label": "Music For Nations",
+    "label": "Music for Nations",
     "genre": "Extreme Gothic Metal",
-    "format": "Jewel Case",
-    "coverImageUrl": "",
-    "backgroundImageUrl": "",
+    "format": "CD",
+    "coverImageUrl": "https://coverartarchive.org/release/d1a30fef-2178-40bc-a47c-1456f03e782b/13132428366.jpg",
+    "backgroundImageUrl": "https://coverartarchive.org/release/d1a30fef-2178-40bc-a47c-1456f03e782b/13132429780.jpg",
     "tags": [
       "vampiric",
       "atmospheric",
@@ -19,7 +19,65 @@
     "notes": "A concept album about Elizabeth Bathory. The orchestral flourishes over blast beats still hold up.",
     "conditionOrEdition": "Original UK pressing, near mint",
     "dateAcquired": "2019-10-31",
-    "wishlist": false
+    "wishlist": false,
+    "musicbrainzId": "d1a30fef-2178-40bc-a47c-1456f03e782b",
+    "barcode": "5016583124229",
+    "catalogNumber": "CDMFN 242",
+    "country": "GB",
+    "trackList": [
+      {
+        "position": 1,
+        "title": "Once Upon Atrocity",
+        "lengthMs": 103373
+      },
+      {
+        "position": 2,
+        "title": "Thirteen Autumns and a Widow",
+        "lengthMs": 434333
+      },
+      {
+        "position": 3,
+        "title": "Cruelty Brought Thee Orchids",
+        "lengthMs": 438760
+      },
+      {
+        "position": 4,
+        "title": "Beneath the Howling Stars",
+        "lengthMs": 462733
+      },
+      {
+        "position": 5,
+        "title": "Venus in Fear",
+        "lengthMs": 140333
+      },
+      {
+        "position": 6,
+        "title": "Desire in Violent Overture",
+        "lengthMs": 256906
+      },
+      {
+        "position": 7,
+        "title": "The Twisted Nails of Faith",
+        "lengthMs": 410733
+      },
+      {
+        "position": 8,
+        "title": "Bathory Aria: Benighted Like Usher / A Murder of Ravens in Fugue / Eyes That Witnessed Madness",
+        "lengthMs": 662360
+      },
+      {
+        "position": 9,
+        "title": "Portrait of the Dead Countess",
+        "lengthMs": 172840
+      },
+      {
+        "position": 10,
+        "title": "Lustmord and Wargasm (The Lick of Carnivorous Winds)",
+        "lengthMs": 450800
+      }
+    ],
+    "backCoverImageUrl": "https://coverartarchive.org/release/d1a30fef-2178-40bc-a47c-1456f03e782b/13132429780.jpg",
+    "discImageUrl": "https://coverartarchive.org/release/d1a30fef-2178-40bc-a47c-1456f03e782b/13132433396.jpg"
   },
   {
     "id": "8f14e45f-ceea-4d1c-9a83-000000000002",
@@ -29,9 +87,9 @@
     "year": 1993,
     "label": "Roadrunner Records",
     "genre": "Gothic Metal",
-    "format": "Jewel Case",
-    "coverImageUrl": "",
-    "backgroundImageUrl": "",
+    "format": "CD",
+    "coverImageUrl": "https://coverartarchive.org/release/a98c1d5d-263d-43e6-8926-7d06def614ba/8508493025.jpg",
+    "backgroundImageUrl": "https://coverartarchive.org/release/a98c1d5d-263d-43e6-8926-7d06def614ba/8508494369.jpg",
     "tags": [
       "romantic",
       "doom-tinged",
@@ -41,7 +99,84 @@
     "notes": "The album that basically defined gothic metal's romantic/morbid side. Green artwork, black heart.",
     "conditionOrEdition": "Reissue, mint",
     "dateAcquired": "2020-02-14",
-    "wishlist": false
+    "wishlist": false,
+    "musicbrainzId": "a98c1d5d-263d-43e6-8926-7d06def614ba",
+    "barcode": "016861910020",
+    "catalogNumber": "RR 9100-2",
+    "country": "US",
+    "trackList": [
+      {
+        "position": 1,
+        "title": "Machine Screw",
+        "lengthMs": 40826
+      },
+      {
+        "position": 2,
+        "title": "Christian Woman",
+        "lengthMs": 538133
+      },
+      {
+        "position": 3,
+        "title": "Black No. 1 (Little Miss Scare‐All)",
+        "lengthMs": 675040
+      },
+      {
+        "position": 4,
+        "title": "Fay Wray Come Out and Play",
+        "lengthMs": 63360
+      },
+      {
+        "position": 5,
+        "title": "Kill All the White People",
+        "lengthMs": 204040
+      },
+      {
+        "position": 6,
+        "title": "Summer Breeze",
+        "lengthMs": 289293
+      },
+      {
+        "position": 7,
+        "title": "Set Me on Fire",
+        "lengthMs": 209573
+      },
+      {
+        "position": 8,
+        "title": "Dark Side of the Womb",
+        "lengthMs": 28066
+      },
+      {
+        "position": 9,
+        "title": "We Hate Everyone",
+        "lengthMs": 411200
+      },
+      {
+        "position": 10,
+        "title": "Bloody Kisses (A Death in the Family)",
+        "lengthMs": 656160
+      },
+      {
+        "position": 11,
+        "title": "3.0.I.F.",
+        "lengthMs": 126066
+      },
+      {
+        "position": 12,
+        "title": "Too Late: Frozen",
+        "lengthMs": 470773
+      },
+      {
+        "position": 13,
+        "title": "Blood & Fire",
+        "lengthMs": 332960
+      },
+      {
+        "position": 14,
+        "title": "Can’t Lose You",
+        "lengthMs": 366306
+      }
+    ],
+    "backCoverImageUrl": "https://coverartarchive.org/release/a98c1d5d-263d-43e6-8926-7d06def614ba/8508494369.jpg"
   },
   {
     "id": "8f14e45f-ceea-4d1c-9a83-000000000003",
@@ -49,11 +184,11 @@
     "type": "cd",
     "artistOrDirector": "Paradise Lost",
     "year": 1995,
-    "label": "Music For Nations",
+    "label": "Relativity Records",
     "genre": "Gothic Doom Metal",
-    "format": "Jewel Case",
-    "coverImageUrl": "",
-    "backgroundImageUrl": "",
+    "format": "CD",
+    "coverImageUrl": "https://coverartarchive.org/release/3aa2c28d-c9c1-41be-9fa3-385bb2cbe024/31807534093-500.jpg",
+    "backgroundImageUrl": "https://coverartarchive.org/release/3aa2c28d-c9c1-41be-9fa3-385bb2cbe024/31807532147-500.jpg",
     "tags": [
       "melancholic",
       "cathedral",
@@ -63,7 +198,75 @@
     "notes": "Often called the gothic metal genre's high-water mark. Cover has that stark cathedral-window feel.",
     "conditionOrEdition": "Good, light shelf wear on case",
     "dateAcquired": "2021-06-03",
-    "wishlist": false
+    "wishlist": false,
+    "musicbrainzId": "3aa2c28d-c9c1-41be-9fa3-385bb2cbe024",
+    "barcode": "020831149228",
+    "catalogNumber": "CRT 1537",
+    "country": "US",
+    "trackList": [
+      {
+        "position": 1,
+        "title": "Enchantment",
+        "lengthMs": 365426
+      },
+      {
+        "position": 2,
+        "title": "Hallowed Land",
+        "lengthMs": 302600
+      },
+      {
+        "position": 3,
+        "title": "The Last Time",
+        "lengthMs": 207240
+      },
+      {
+        "position": 4,
+        "title": "Forever Failure",
+        "lengthMs": 257959
+      },
+      {
+        "position": 5,
+        "title": "Once Solemn",
+        "lengthMs": 183866
+      },
+      {
+        "position": 6,
+        "title": "Shadowkings",
+        "lengthMs": 281840
+      },
+      {
+        "position": 7,
+        "title": "Elusive Cure",
+        "lengthMs": 200826
+      },
+      {
+        "position": 8,
+        "title": "Yearn for Change",
+        "lengthMs": 259506
+      },
+      {
+        "position": 9,
+        "title": "Shades of God",
+        "lengthMs": 234893
+      },
+      {
+        "position": 10,
+        "title": "Hands of Reason",
+        "lengthMs": 238173
+      },
+      {
+        "position": 11,
+        "title": "I See Your Face",
+        "lengthMs": 197093
+      },
+      {
+        "position": 12,
+        "title": "Jaded",
+        "lengthMs": 206666
+      }
+    ],
+    "backCoverImageUrl": "https://coverartarchive.org/release/3aa2c28d-c9c1-41be-9fa3-385bb2cbe024/31807532147-500.jpg",
+    "discImageUrl": "https://coverartarchive.org/release/3aa2c28d-c9c1-41be-9fa3-385bb2cbe024/31807549562-500.jpg"
   },
   {
     "id": "8f14e45f-ceea-4d1c-9a83-000000000004",
@@ -71,11 +274,11 @@
     "type": "cd",
     "artistOrDirector": "My Dying Bride",
     "year": 1993,
-    "label": "Peaceville Records",
+    "label": "Peaceville",
     "genre": "Doom/Death Metal",
-    "format": "Jewel Case",
-    "coverImageUrl": "",
-    "backgroundImageUrl": "",
+    "format": "CD",
+    "coverImageUrl": "https://coverartarchive.org/release/48116665-87cd-3739-8fc1-9c35c3ea8e98/7722107855.jpg",
+    "backgroundImageUrl": "https://coverartarchive.org/release/48116665-87cd-3739-8fc1-9c35c3ea8e98/7722109743.jpg",
     "tags": [
       "funereal",
       "violin",
@@ -85,7 +288,50 @@
     "notes": "Aaron's violin parts turn this into something closer to a requiem than a metal record.",
     "conditionOrEdition": "Original pressing, very good",
     "dateAcquired": "2022-01-20",
-    "wishlist": false
+    "wishlist": false,
+    "musicbrainzId": "48116665-87cd-3739-8fc1-9c35c3ea8e98",
+    "barcode": "5020157103923",
+    "catalogNumber": "CDVILE 39",
+    "country": "GB",
+    "trackList": [
+      {
+        "position": 1,
+        "title": "Sear Me MCMXCIII",
+        "lengthMs": 444000
+      },
+      {
+        "position": 2,
+        "title": "Your River",
+        "lengthMs": 564000
+      },
+      {
+        "position": 3,
+        "title": "The Songless Bird",
+        "lengthMs": 420000
+      },
+      {
+        "position": 4,
+        "title": "The Snow in My Hand",
+        "lengthMs": 429000
+      },
+      {
+        "position": 5,
+        "title": "The Crown of Sympathy",
+        "lengthMs": 735333
+      },
+      {
+        "position": 6,
+        "title": "Turn Loose the Swans",
+        "lengthMs": 608666
+      },
+      {
+        "position": 7,
+        "title": "Black God",
+        "lengthMs": 291666
+      }
+    ],
+    "backCoverImageUrl": "https://coverartarchive.org/release/48116665-87cd-3739-8fc1-9c35c3ea8e98/7722109743.jpg",
+    "discImageUrl": "https://coverartarchive.org/release/48116665-87cd-3739-8fc1-9c35c3ea8e98/7722111077.jpg"
   },
   {
     "id": "8f14e45f-ceea-4d1c-9a83-000000000005",
@@ -95,9 +341,9 @@
     "year": 2014,
     "label": "Nuclear Blast",
     "genre": "Blackened Death Metal",
-    "format": "Digipak",
-    "coverImageUrl": "",
-    "backgroundImageUrl": "",
+    "format": "CD",
+    "coverImageUrl": "https://coverartarchive.org/release/5b9a8100-411c-469b-9069-bca921a60bc5/33060498485-500.jpg",
+    "backgroundImageUrl": "https://coverartarchive.org/release/5b9a8100-411c-469b-9069-bca921a60bc5/33060499135-500.jpg",
     "tags": [
       "ritualistic",
       "modern classic"
@@ -106,7 +352,60 @@
     "notes": "Nergal's comeback record after leukemia treatment. Sounds like a black mass.",
     "conditionOrEdition": "Digipak, mint",
     "dateAcquired": "2023-09-08",
-    "wishlist": false
+    "wishlist": false,
+    "musicbrainzId": "5b9a8100-411c-469b-9069-bca921a60bc5",
+    "barcode": "727361310424",
+    "catalogNumber": "27361 31042",
+    "country": "DE",
+    "trackList": [
+      {
+        "position": 1,
+        "title": "Blow Your Trumpets Gabriel",
+        "lengthMs": 265440
+      },
+      {
+        "position": 2,
+        "title": "Furor Divinus",
+        "lengthMs": 186613
+      },
+      {
+        "position": 3,
+        "title": "Messe Noire",
+        "lengthMs": 244826
+      },
+      {
+        "position": 4,
+        "title": "Ora pro nobis Lucifer",
+        "lengthMs": 335213
+      },
+      {
+        "position": 5,
+        "title": "Amen",
+        "lengthMs": 229160
+      },
+      {
+        "position": 6,
+        "title": "The Satanist",
+        "lengthMs": 333826
+      },
+      {
+        "position": 7,
+        "title": "Ben Sahar",
+        "lengthMs": 334986
+      },
+      {
+        "position": 8,
+        "title": "In the Absence ov Light",
+        "lengthMs": 298706
+      },
+      {
+        "position": 9,
+        "title": "O Father O Satan O Sun!",
+        "lengthMs": 433440
+      }
+    ],
+    "backCoverImageUrl": "https://coverartarchive.org/release/5b9a8100-411c-469b-9069-bca921a60bc5/33060499135-500.jpg",
+    "discImageUrl": "https://coverartarchive.org/release/5b9a8100-411c-469b-9069-bca921a60bc5/33060499451-500.jpg"
   },
   {
     "id": "8f14e45f-ceea-4d1c-9a83-000000000006",
@@ -114,11 +413,11 @@
     "type": "vinyl",
     "artistOrDirector": "The Sisters of Mercy",
     "year": 1987,
-    "label": "Merciful Release",
+    "label": "WEA Records",
     "genre": "Gothic Rock",
-    "format": "LP, Gatefold",
-    "coverImageUrl": "",
-    "backgroundImageUrl": "",
+    "format": "12\" Vinyl",
+    "coverImageUrl": "https://coverartarchive.org/release/bc061b9c-41bb-45ca-a0a9-20d7c476938d/6313878555.jpg",
+    "backgroundImageUrl": "https://coverartarchive.org/release/bc061b9c-41bb-45ca-a0a9-20d7c476938d/6313878555.jpg",
     "tags": [
       "foundational",
       "drum machine",
@@ -128,7 +427,53 @@
     "notes": "\"This Corrosion\" and \"Lucretia My Reflection\" back to back is one of the great one-two punches in the genre.",
     "conditionOrEdition": "Reissue, gatefold, near mint",
     "dateAcquired": "2022-10-31",
-    "wishlist": false
+    "wishlist": false,
+    "musicbrainzId": "bc061b9c-41bb-45ca-a0a9-20d7c476938d",
+    "barcode": "022924223211",
+    "catalogNumber": "242232-1",
+    "country": "GB",
+    "trackList": [
+      {
+        "position": 1,
+        "title": "Dominion / Mother Russia",
+        "lengthMs": 422000
+      },
+      {
+        "position": 2,
+        "title": "Flood I",
+        "lengthMs": 382000
+      },
+      {
+        "position": 3,
+        "title": "Lucretia My Reflection",
+        "lengthMs": 297000
+      },
+      {
+        "position": 4,
+        "title": "1959",
+        "lengthMs": 251000
+      },
+      {
+        "position": 5,
+        "title": "This Corrosion",
+        "lengthMs": 556000
+      },
+      {
+        "position": 6,
+        "title": "Flood II",
+        "lengthMs": 379000
+      },
+      {
+        "position": 7,
+        "title": "Driven Like the Snow",
+        "lengthMs": 279000
+      },
+      {
+        "position": 8,
+        "title": "Never Land (A Fragment)",
+        "lengthMs": 176000
+      }
+    ]
   },
   {
     "id": "8f14e45f-ceea-4d1c-9a83-000000000007",
@@ -138,9 +483,9 @@
     "year": 1980,
     "label": "4AD",
     "genre": "Gothic Rock",
-    "format": "LP",
-    "coverImageUrl": "",
-    "backgroundImageUrl": "",
+    "format": "12\" Vinyl",
+    "coverImageUrl": "https://coverartarchive.org/release/4ab8b678-e655-49ac-a89a-38e7e3d2b0b0/3447195365.jpg",
+    "backgroundImageUrl": "https://coverartarchive.org/release/4ab8b678-e655-49ac-a89a-38e7e3d2b0b0/3447216389.jpg",
     "tags": [
       "post-punk",
       "the beginning of it all"
@@ -149,7 +494,60 @@
     "notes": "Arguably where gothic rock as a genre actually starts. Raw and skeletal.",
     "conditionOrEdition": "Reissue, very good",
     "dateAcquired": "2023-03-15",
-    "wishlist": false
+    "wishlist": false,
+    "musicbrainzId": "4ab8b678-e655-49ac-a89a-38e7e3d2b0b0",
+    "barcode": "",
+    "catalogNumber": "CAD 13",
+    "country": "GB",
+    "trackList": [
+      {
+        "position": 1,
+        "title": "Double Dare",
+        "lengthMs": 294000
+      },
+      {
+        "position": 2,
+        "title": "In the Flat Field",
+        "lengthMs": 299000
+      },
+      {
+        "position": 3,
+        "title": "A God in an Alcove",
+        "lengthMs": 248000
+      },
+      {
+        "position": 4,
+        "title": "Dive",
+        "lengthMs": 134000
+      },
+      {
+        "position": 5,
+        "title": "The Spy in the Cab",
+        "lengthMs": 272000
+      },
+      {
+        "position": 6,
+        "title": "Small Talk Stinks",
+        "lengthMs": 215000
+      },
+      {
+        "position": 7,
+        "title": "St. Vitus Dance",
+        "lengthMs": 212000
+      },
+      {
+        "position": 8,
+        "title": "Stigmata Martyr",
+        "lengthMs": 227000
+      },
+      {
+        "position": 9,
+        "title": "Nerves",
+        "lengthMs": 427000
+      }
+    ],
+    "backCoverImageUrl": "https://coverartarchive.org/release/4ab8b678-e655-49ac-a89a-38e7e3d2b0b0/3447216389.jpg",
+    "discImageUrl": "https://coverartarchive.org/release/4ab8b678-e655-49ac-a89a-38e7e3d2b0b0/3447225196.jpg"
   },
   {
     "id": "8f14e45f-ceea-4d1c-9a83-000000000008",
@@ -205,9 +603,9 @@
     "year": 1987,
     "label": "4AD",
     "genre": "Gothic / Neoclassical",
-    "format": "LP",
-    "coverImageUrl": "",
-    "backgroundImageUrl": "",
+    "format": "12\" Vinyl",
+    "coverImageUrl": "https://coverartarchive.org/release/e99aeaba-98cd-3ce4-b6c1-e885d0dc1bf1/27155444551-500.jpg",
+    "backgroundImageUrl": "https://coverartarchive.org/release/e99aeaba-98cd-3ce4-b6c1-e885d0dc1bf1/27155444551-500.jpg",
     "tags": [
       "neoclassical",
       "choral",
@@ -217,6 +615,52 @@
     "notes": "Been chasing a clean copy of this for years — the choral side is unreal.",
     "conditionOrEdition": "",
     "dateAcquired": "",
-    "wishlist": true
+    "wishlist": true,
+    "musicbrainzId": "e99aeaba-98cd-3ce4-b6c1-e885d0dc1bf1",
+    "barcode": "",
+    "catalogNumber": "CAD 705",
+    "country": "GB",
+    "trackList": [
+      {
+        "position": 1,
+        "title": "Anywhere Out of the World",
+        "lengthMs": 309973
+      },
+      {
+        "position": 2,
+        "title": "Windfall",
+        "lengthMs": 212200
+      },
+      {
+        "position": 3,
+        "title": "In the Wake of Adversity",
+        "lengthMs": 256506
+      },
+      {
+        "position": 4,
+        "title": "Xavier",
+        "lengthMs": 378026
+      },
+      {
+        "position": 5,
+        "title": "Dawn of the Iconoclast",
+        "lengthMs": 128106
+      },
+      {
+        "position": 6,
+        "title": "Cantara",
+        "lengthMs": 360320
+      },
+      {
+        "position": 7,
+        "title": "Summoning of the Muse",
+        "lengthMs": 297600
+      },
+      {
+        "position": 8,
+        "title": "Persephone (The Gathering of Flowers)",
+        "lengthMs": 396426
+      }
+    ]
   }
 ]

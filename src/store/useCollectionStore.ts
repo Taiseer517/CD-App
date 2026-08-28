@@ -92,11 +92,13 @@ export const useCollectionStore = create<CollectionState>((set, get) => {
     async fetchAll() {
       set({ status: 'loading', error: null })
       try {
+        // getAll() is what seeds; snapshot() only reads. On a first run the
+        // seed also creates the starter shelves, so the snapshot has to be
+        // taken *after* it — reading first returned an empty shelf list and
+        // threw the seeded arrangement away.
+        await getRepository().getAll()
         const { items, shelves } = await getRepository().snapshot()
-        // snapshot() does not seed; getAll() does. Call it so a first run has
-        // something on the shelf instead of an empty room.
-        const seeded = items.length === 0 ? await getRepository().getAll() : items
-        set({ items: seeded, shelves, status: 'ready' })
+        set({ items, shelves, status: 'ready' })
 
         if (isFileSyncSupported()) {
           const handle = await restoreArchiveFile()

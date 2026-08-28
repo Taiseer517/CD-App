@@ -39,16 +39,46 @@ function parseItems(raw: unknown[]): CollectionItem[] {
 }
 
 /**
+ * A starting arrangement by medium. Everything can be renamed, reordered or
+ * torn down afterwards — this exists so the first view is a bookcase with
+ * rows rather than one long crowded shelf.
+ */
+const STARTER_SHELVES: { name: string; type: CollectionItem['type'] }[] = [
+  { name: 'Compact Discs', type: 'cd' },
+  { name: 'Records', type: 'vinyl' },
+  { name: 'Films', type: 'dvd' },
+]
+
+/**
  * Seeds the starter collection on first run only. The marker matters: without
  * it, emptying the collection deliberately would silently refill it on the
  * next reload.
  */
 async function ensureSeeded(): Promise<void> {
   if (await readMeta<boolean>(SEEDED_KEY)) return
+
   const existing = await readAll<CollectionItem>(STORE_ITEMS)
   if (existing.length === 0) {
-    await replaceStore(STORE_ITEMS, parseItems(rawCollection as unknown[]))
+    const items = parseItems(rawCollection as unknown[])
+
+    const shelves: Shelf[] = STARTER_SHELVES.map((definition, order) =>
+      ShelfSchema.parse({ id: newId(), name: definition.name, order, accent: '' }),
+    )
+    const shelfByType = new Map(STARTER_SHELVES.map((d, index) => [d.type, shelves[index].id]))
+
+    const counters = new Map<string, number>()
+    const placed = items.map((item) => {
+      const shelfId = shelfByType.get(item.type) ?? null
+      const key = shelfId ?? 'unfiled'
+      const position = counters.get(key) ?? 0
+      counters.set(key, position + 1)
+      return { ...item, shelfId, position }
+    })
+
+    await replaceStore(STORE_SHELVES, shelves)
+    await replaceStore(STORE_ITEMS, placed)
   }
+
   await writeMeta(SEEDED_KEY, true)
 }
 

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ReleaseLookup } from '../lookup/ReleaseLookup'
 import { emptyCollectionItemInput, type CollectionItemInput, type MediaType } from '../../data/schema'
 
 interface ItemFormProps {
@@ -32,6 +33,10 @@ export function ItemForm({ initialValues, submitLabel, onSubmit, onSaveAndAddAno
     setValues((prev) => ({ ...prev, [key]: value }))
   }
 
+  function applyLookup(patch: Partial<CollectionItemInput>) {
+    setValues((prev) => ({ ...prev, ...patch }))
+  }
+
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
     setSaving(true)
@@ -56,6 +61,12 @@ export function ItemForm({ initialValues, submitLabel, onSubmit, onSaveAndAddAno
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      <ReleaseLookup
+        title={values.title}
+        artist={values.artistOrDirector}
+        onApply={applyLookup}
+      />
+
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className={labelClass} htmlFor="type">Type</label>
@@ -209,6 +220,28 @@ export function ItemForm({ initialValues, submitLabel, onSubmit, onSaveAndAddAno
           onChange={(event) => update('notes', event.target.value)}
         />
       </div>
+
+      {(values.musicbrainzId || values.trackList.length > 0) && (
+        <div className="rounded-lg border border-void-700 bg-void-900/40 p-4 text-xs text-bone-400">
+          <p className="font-display uppercase tracking-wide text-velvet-300">From the lookup</p>
+          <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1">
+            {values.catalogNumber && <span>Catalogue {values.catalogNumber}</span>}
+            {values.barcode && <span>Barcode {values.barcode}</span>}
+            {values.country && <span>Pressed in {values.country}</span>}
+            {values.trackList.length > 0 && <span>{values.trackList.length} tracks</span>}
+            {values.backCoverImageUrl && <span>Back cover found</span>}
+            {values.dominantColor && (
+              <span className="inline-flex items-center gap-1.5">
+                Colour
+                <span
+                  className="inline-block h-3 w-3 rounded-sm border border-void-700"
+                  style={{ backgroundColor: values.dominantColor }}
+                />
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       <label className="flex items-center gap-2 text-sm text-bone-200">
         <input
