@@ -6,7 +6,7 @@ import { CaseDetailPanel } from '../components/shelf/CaseDetailPanel'
 import { SearchBox } from '../components/search/SearchBox'
 import type { CollectionItem } from '../data/schema'
 import { shelfIdFromParam, UNFILED_SLUG } from '../data/shelfRoutes'
-import { ShelfCase } from '../components/bookcase/ShelfCase'
+import { RecordRack, type Density } from '../components/bookcase/RecordRack'
 import { themeById } from '../scenes/themes'
 import { useCollectionStore } from '../store/useCollectionStore'
 import { useUiStore } from '../store/useUiStore'
@@ -32,6 +32,7 @@ export function ShelfPage() {
   const theme = themeById(useUiStore((state) => state.theme))
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [density, setDensity] = useState<Density>('covers')
   const [renaming, setRenaming] = useState(false)
   const [draftName, setDraftName] = useState('')
 
@@ -81,7 +82,7 @@ export function ShelfPage() {
 
   return (
     <PageTransition>
-      <div className="space-y-4">
+      <div className="-mx-6 space-y-4 px-6 sm:-mx-10 sm:px-10 lg:-mx-[max(0px,calc((100vw-72rem)/2+2.5rem))] lg:px-10">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">
             <Link
@@ -126,6 +127,23 @@ export function ShelfPage() {
 
           <div className="flex flex-wrap items-center gap-3">
             <div className="w-56"><SearchBox /></div>
+            <div className="flex overflow-hidden rounded-md border border-void-700">
+              {(['covers', 'spines'] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setDensity(mode)}
+                  aria-pressed={density === mode}
+                  className={`px-3 py-1.5 text-sm capitalize transition-colors ${
+                    density === mode
+                      ? 'bg-velvet-900/50 text-bone-100'
+                      : 'text-bone-400 hover:text-bone-200'
+                  }`}
+                >
+                  {mode}
+                </button>
+              ))}
+            </div>
             <button
               type="button"
               onClick={handleTidy}
@@ -155,12 +173,18 @@ export function ShelfPage() {
             }
           />
         ) : (
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
-            <ShelfCase
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_23rem] xl:items-start">
+            <RecordRack
               items={shown}
               theme={theme}
               selectedId={selectedId}
+              density={density}
               onSelect={(item) => setSelectedId((current) => (current === item.id ? null : item.id))}
+              onReorder={async (orderedIds) => {
+                await savePlacements(
+                  orderedIds.map((id, position) => ({ id, shelfId, position })),
+                )
+              }}
             />
 
             {/* Beside the case rather than over it: covering the shelf to read
