@@ -110,6 +110,25 @@ for (const name of ['Cathedral', 'Crypt']) {
 }
 check('switching theme changes how the case is drawn', themeShots[0] !== themeShots[1])
 
+console.log('\nSound')
+await page.goto(BASE + '#/shelf', { waitUntil: 'load' })
+await page.waitForTimeout(2000)
+
+// Nothing may be making noise before she asks for it.
+const quiet = await page.evaluate(async () => {
+  const mod = await import('/src/audio/archiveAudio.ts')
+  return mod.archiveAudio.isRunning()
+}).catch(() => false)
+check('the room is silent until asked', quiet === false)
+
+await page.locator('button:has-text("Sound off")').click().catch(() => {})
+await page.waitForTimeout(1600)
+const playing = await page.evaluate(async () => {
+  const mod = await import('/src/audio/archiveAudio.ts')
+  return mod.archiveAudio.isRunning()
+}).catch(() => false)
+check('the toggle starts the ambience', playing === true)
+
 console.log('\nAttribution')
 const footer = await page.locator('footer').innerText()
 check('sources are credited', /MusicBrainz/.test(footer) && /Cover Art Archive/.test(footer))

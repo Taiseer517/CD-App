@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { lazy, Suspense, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { CollectionItem } from '../../data/schema'
+import { archiveAudio } from '../../audio/archiveAudio'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
 import { useCollectionStore } from '../../store/useCollectionStore'
 import { Rating } from '../common/Rating'
@@ -58,7 +59,10 @@ export function CaseDetailPanel({ item, onClose }: CaseDetailPanelProps) {
             </div>
             <button
               type="button"
-              onClick={onClose}
+              onClick={() => {
+                archiveAudio.close()
+                onClose()
+              }}
               aria-label="Close details"
               className="shrink-0 rounded-md border border-void-700 px-2 py-1 text-bone-400 transition-colors hover:border-blood-500 hover:text-bone-100"
             >

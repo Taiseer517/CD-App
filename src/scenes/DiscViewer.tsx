@@ -3,6 +3,7 @@ import { Environment, Lightformer } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { DoubleSide, MathUtils, type Group } from 'three'
+import { archiveAudio } from '../audio/archiveAudio'
 import type { CollectionItem } from '../data/schema'
 import { useDiscFace } from './hooks/useDiscFace'
 
@@ -262,6 +263,11 @@ export function DiscViewer({ item, onClose, reducedMotion }: DiscViewerProps) {
     tiltRef.current = 0
     dragRef.current.velocity = 0
     setFlipped(false)
+  }, [])
+
+  // The disc coming out of its case, once, on opening.
+  useEffect(() => {
+    archiveAudio.open()
   }, [])
 
   useEffect(() => {

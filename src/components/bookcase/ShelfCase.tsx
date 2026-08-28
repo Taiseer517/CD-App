@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { archiveAudio } from '../../audio/archiveAudio'
 import { safeImageUrl } from '../../data/safeUrl'
 import type { CollectionItem } from '../../data/schema'
 import type { ShelfTheme } from '../../scenes/themes'
@@ -59,7 +60,11 @@ function Spine({
   return (
     <button
       type="button"
-      onClick={() => onSelect(item)}
+      onClick={() => {
+        archiveAudio.pull()
+        onSelect(item)
+      }}
+      onPointerEnter={() => archiveAudio.tip()}
       title={`${item.title} — ${item.artistOrDirector}`}
       aria-pressed={selected}
       className={`group relative h-full shrink-0 origin-left rounded-[1px] transition-transform duration-300 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-velvet-400 ${
@@ -103,7 +108,11 @@ function FaceOut({
   return (
     <button
       type="button"
-      onClick={() => onSelect(item)}
+      onClick={() => {
+        archiveAudio.pull()
+        onSelect(item)
+      }}
+      onPointerEnter={() => archiveAudio.tip()}
       title={`${item.title} — ${item.artistOrDirector}`}
       aria-pressed={selected}
       className={`group relative h-full shrink-0 overflow-hidden rounded-[2px] border border-black/70 shadow-[0_6px_14px_-6px_rgba(0,0,0,0.95)] transition-transform duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-velvet-400 ${

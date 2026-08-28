@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { SoundToggle } from './SoundToggle'
 
 const links = [
   { to: '/', label: 'Collection', end: true },
@@ -10,7 +11,7 @@ const links = [
 
 export function NavBar() {
   return (
-    <nav className="flex justify-center gap-1 border-b border-void-700 bg-void-900/60 px-6 py-3">
+    <nav className="relative flex items-center justify-center gap-1 border-b border-void-700 bg-void-900/60 px-6 py-3">
       {links.map((link) => (
         <NavLink
           key={link.to}
@@ -27,6 +28,9 @@ export function NavBar() {
           {link.label}
         </NavLink>
       ))}
+      <span className="absolute right-6">
+        <SoundToggle />
+      </span>
     </nav>
   )
 }
