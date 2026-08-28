@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { CollectionCard } from '../components/cards/CollectionCard'
 import { EmptyState } from '../components/common/EmptyState'
 import { PageTransition } from '../components/layout/PageTransition'
-import { AlbumSearch } from '../components/lookup/AlbumSearch'
+import { AddRecord } from '../components/lookup/AddRecord'
 import { useFilteredCollection } from '../hooks/useCollectionFilters'
 import { useCollectionStore } from '../store/useCollectionStore'
 
@@ -19,9 +19,8 @@ export function WishlistPage() {
           Records not yet in your hands — ghosts on the shelf, waiting to be claimed.
         </p>
 
-        <AlbumSearch
-          actionLabel="Add to wishlist"
-          placeholder="Search for a record or film you want…"
+        <AddRecord
+          destination="wishlist"
           onAdd={async (input) => {
             const created = await addItem({ ...input, wishlist: true })
             setJustAdded(created.title)

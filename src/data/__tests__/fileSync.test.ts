@@ -16,7 +16,7 @@ describe('archive round-trip', () => {
   it('survives a full export and re-import unchanged', () => {
     const archive = buildArchive(
       [item({ genre: 'Gothic Metal', tags: ['romantic'] })],
-      [{ id: 'shelf-1', name: 'Roadrunner', order: 0, accent: '' }],
+      [{ id: 'shelf-1', name: 'Roadrunner', order: 0, accent: '', kind: 'music' as const }],
     )
 
     const restored = parseArchive(JSON.stringify(archive))

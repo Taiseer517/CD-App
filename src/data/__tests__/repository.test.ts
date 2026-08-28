@@ -65,7 +65,7 @@ describe('indexedDbRepository', () => {
 
   it('keeps items when their shelf is deleted, returning them to unfiled', async () => {
     await indexedDbRepository.getAll()
-    const shelf = await indexedDbRepository.createShelf({ name: 'Peaceville years', order: 0, accent: '' })
+    const shelf = await indexedDbRepository.createShelf({ name: 'Peaceville years', order: 0, accent: '', kind: 'music' })
     const item = await indexedDbRepository.create(draft({ shelfId: shelf.id, position: 2 }))
 
     await indexedDbRepository.removeShelf(shelf.id)
@@ -77,7 +77,7 @@ describe('indexedDbRepository', () => {
 
   it('saves a batch of placements in one pass', async () => {
     const items = await indexedDbRepository.getAll()
-    const shelf = await indexedDbRepository.createShelf({ name: 'Doom', order: 0, accent: '' })
+    const shelf = await indexedDbRepository.createShelf({ name: 'Doom', order: 0, accent: '', kind: 'music' })
 
     await indexedDbRepository.savePlacements(
       items.slice(0, 3).map((item, index) => ({ id: item.id, shelfId: shelf.id, position: index })),
@@ -130,7 +130,7 @@ describe('indexedDbRepository', () => {
     await indexedDbRepository.getAll()
     const replacement = {
       items: [{ ...emptyCollectionItemInput(), id: 'only-one', title: 'Floodland' }],
-      shelves: [{ id: 'shelf-1', name: 'Merciful Release', order: 0, accent: '' }],
+      shelves: [{ id: 'shelf-1', name: 'Merciful Release', order: 0, accent: '', kind: 'music' as const }],
     }
 
     await indexedDbRepository.replaceAll(replacement)

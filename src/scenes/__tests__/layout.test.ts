@@ -15,7 +15,7 @@ function make(overrides: Partial<CollectionItem> = {}): CollectionItem {
   })
 }
 
-const shelf = (id: string, name: string, order: number): Shelf => ({ id, name, order, accent: '' })
+const shelf = (id: string, name: string, order: number): Shelf => ({ id, name, order, accent: '', kind: 'music' })
 
 describe('layoutBookcase', () => {
   it('puts unfiled items in their own row when there are no shelves', () => {

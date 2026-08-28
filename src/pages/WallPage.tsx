@@ -14,6 +14,7 @@ export function WallPage() {
   const shelves = useCollectionStore((state) => state.shelves)
   const addShelf = useCollectionStore((state) => state.addShelf)
   const [newName, setNewName] = useState('')
+  const [newKind, setNewKind] = useState<'music' | 'film'>('music')
   const themeId = useUiStore((state) => state.theme)
   const theme = themeById(themeId)
   const setTheme = useUiStore((state) => state.setTheme)
@@ -38,11 +39,11 @@ export function WallPage() {
 
   const unfiled = grouped.get(null) ?? []
 
-  async function handleCreate(event: React.FormEvent) {
+  async function handleCreate(event: React.FormEvent, kind: 'music' | 'film' = 'music') {
     event.preventDefault()
     const name = newName.trim()
     if (!name) return
-    await addShelf({ name, order: shelves.length, accent: '' })
+    await addShelf({ name, order: shelves.length, accent: '', kind })
     setNewName('')
   }
 
@@ -62,44 +63,80 @@ export function WallPage() {
           </p>
         </header>
 
-        {/* Fewer, larger niches. Four to a row made each one too small to
-            see what was standing in it. */}
-        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3">
-          {[...shelves]
+        {/* Music and film are catalogued differently and are kept apart:
+            a film has a director and a runtime where a record has an artist,
+            a pressing and a tracklist, and shelving them together makes both
+            look wrong. */}
+        {(['music', 'film'] as const).map((kind) => {
+          const inKind = [...shelves]
+            .filter((shelf) => shelf.kind === kind)
             .sort((a, b) => a.order - b.order)
-            .map((shelf, index) => (
-              <ShelfAlcove
-                key={shelf.id}
-                to={`/shelf/${shelf.id}`}
-                name={shelf.name}
-                count={(grouped.get(shelf.id) ?? []).length}
-                items={grouped.get(shelf.id) ?? []}
-                index={index}
-                theme={theme}
-              />
-            ))}
+          const showUnfiled = kind === 'music' && unfiled.length > 0
+          if (inKind.length === 0 && !showUnfiled) return null
 
-          {unfiled.length > 0 && (
-            <ShelfAlcove
-              to={`/shelf/${UNFILED_SLUG}`}
-              name="Unfiled"
-              count={unfiled.length}
-              items={unfiled}
-              index={shelves.length}
-              theme={theme}
-            />
-          )}
-        </div>
+          return (
+            <section key={kind} className="space-y-5">
+              <h3 className="text-center font-display text-[0.62rem] uppercase tracking-[0.32em] text-bone-400/70">
+                {kind === 'music' ? 'Records and discs' : 'Films'}
+              </h3>
+
+              <div className="mx-auto grid max-w-5xl grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3">
+                {inKind.map((shelf, index) => (
+                  <ShelfAlcove
+                    key={shelf.id}
+                    to={`/shelf/${shelf.id}`}
+                    name={shelf.name}
+                    count={(grouped.get(shelf.id) ?? []).length}
+                    items={grouped.get(shelf.id) ?? []}
+                    index={index}
+                    theme={theme}
+                  />
+                ))}
+
+                {showUnfiled && (
+                  <ShelfAlcove
+                    to={`/shelf/${UNFILED_SLUG}`}
+                    name="Unfiled"
+                    count={unfiled.length}
+                    items={unfiled}
+                    index={inKind.length}
+                    theme={theme}
+                  />
+                )}
+              </div>
+            </section>
+          )
+        })}
 
         <ThemePicker value={themeId} onChange={setTheme} />
 
-        <form onSubmit={handleCreate} className="mx-auto flex max-w-sm gap-2">
+        <form
+          onSubmit={(event) => handleCreate(event, newKind)}
+          className="mx-auto flex max-w-lg flex-wrap items-center justify-center gap-2"
+        >
           <input
             value={newName}
             onChange={(event) => setNewName(event.target.value)}
             placeholder="Build another shelf…"
             className="min-w-0 flex-1 rounded-md border border-void-700 bg-void-950 px-3 py-2 text-sm text-bone-100 placeholder:text-bone-400/50 focus:border-velvet-400 focus:outline-none"
           />
+          <div className="flex overflow-hidden rounded-md border border-void-700">
+            {(['music', 'film'] as const).map((kind) => (
+              <button
+                key={kind}
+                type="button"
+                onClick={() => setNewKind(kind)}
+                aria-pressed={newKind === kind}
+                className={`px-3 py-2 text-sm capitalize transition-colors ${
+                  newKind === kind
+                    ? 'bg-velvet-900/50 text-bone-100'
+                    : 'text-bone-400 hover:text-bone-200'
+                }`}
+              >
+                {kind}
+              </button>
+            ))}
+          </div>
           <button
             type="submit"
             disabled={!newName.trim()}

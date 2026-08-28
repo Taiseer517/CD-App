@@ -43,10 +43,10 @@ function parseItems(raw: unknown[]): CollectionItem[] {
  * torn down afterwards — this exists so the first view is a bookcase with
  * rows rather than one long crowded shelf.
  */
-const STARTER_SHELVES: { name: string; type: CollectionItem['type'] }[] = [
-  { name: 'Compact Discs', type: 'cd' },
-  { name: 'Records', type: 'vinyl' },
-  { name: 'Films', type: 'dvd' },
+const STARTER_SHELVES: { name: string; type: CollectionItem['type']; kind: 'music' | 'film' }[] = [
+  { name: 'Compact Discs', type: 'cd', kind: 'music' },
+  { name: 'Records', type: 'vinyl', kind: 'music' },
+  { name: 'Films', type: 'dvd', kind: 'film' },
 ]
 
 /**
@@ -62,7 +62,13 @@ async function ensureSeeded(): Promise<void> {
     const items = parseItems(rawCollection as unknown[])
 
     const shelves: Shelf[] = STARTER_SHELVES.map((definition, order) =>
-      ShelfSchema.parse({ id: newId(), name: definition.name, order, accent: '' }),
+      ShelfSchema.parse({
+        id: newId(),
+        name: definition.name,
+        order,
+        accent: '',
+        kind: definition.kind,
+      }),
     )
     const shelfByType = new Map(STARTER_SHELVES.map((d, index) => [d.type, shelves[index].id]))
 

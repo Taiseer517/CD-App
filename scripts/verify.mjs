@@ -51,7 +51,8 @@ for (const [name, hash] of [
   ['wishlist', '#/wishlist'],
   ['stats', '#/stats'],
   ['admin', '#/admin'],
-  ['add', '#/admin/new'],
+  ['add', '#/add'],
+  ['byHand', '#/admin/new'],
 ]) {
   await page.goto(BASE + hash, { waitUntil: 'load' })
   await page.waitForTimeout(1800)
@@ -74,18 +75,22 @@ await page.waitForTimeout(3000)
 
 // The case is drawn, not modelled: there is deliberately no canvas here.
 // Only the disc viewer is 3D.
+// The rack is plain DOM: there is deliberately no canvas here, and only the
+// disc viewer is 3D.
 const frame = await page.evaluate(() => ({
-  drawn: Boolean(document.querySelector('main svg path')),
+  rack: Boolean(document.querySelector('[data-rack-item]')),
   canvas: document.querySelectorAll('main canvas').length,
 }))
-check('the bookcase is drawn rather than modelled', frame.drawn && frame.canvas === 0)
+check('the shelf is drawn rather than modelled', frame.rack && frame.canvas === 0)
 
-const cases = await page.locator('main button[aria-pressed]').count()
+// Targeted by data attribute, not aria-pressed: the density toggle carries
+// that too and sits earlier in the document.
+const cases = await page.locator('[data-rack-item]').count()
 check('records are on the shelf', cases > 0, `${cases} on this shelf`)
 
 console.log('\nInteraction')
 if (cases > 0) {
-  await page.locator('main button[aria-pressed]').first().click()
+  await page.locator('[data-rack-item]').first().click()
   await page.waitForTimeout(1200)
   const panel = await page.locator('aside h3').first().textContent().catch(() => null)
   check('clicking a record opens its details', Boolean(panel), panel ?? 'no panel')
@@ -107,9 +112,9 @@ for (const name of ['Cathedral', 'Crypt']) {
   await page.waitForTimeout(500)
   await page.locator('a[aria-label^="Open the"]').first().click()
   await page.waitForTimeout(2500)
-  themeShots.push((await page.locator('main svg').first().screenshot()).toString('base64').slice(0, 4000))
+  themeShots.push((await page.locator('[role="group"]').first().screenshot()).toString('base64').slice(0, 4000))
 }
-check('switching theme changes how the case is drawn', themeShots[0] !== themeShots[1])
+check('switching theme changes how the shelf is lit', themeShots[0] !== themeShots[1])
 
 console.log('\nSound')
 // Counted from outside the app rather than by asking the module: importing

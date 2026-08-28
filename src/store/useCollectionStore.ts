@@ -32,6 +32,9 @@ interface CollectionState {
   deleteItem: (id: string) => Promise<void>
 
   addShelf: (input: ShelfInput) => Promise<Shelf>
+  /** Re-fetches a record's facts and artwork from the source it came from. */
+  refreshItem: (id: string) => Promise<'updated' | 'no-source' | 'failed'>
+  refreshMissingArtwork: () => Promise<number>
   renameShelf: (id: string, name: string) => Promise<void>
   deleteShelf: (id: string) => Promise<void>
   savePlacements: (placements: { id: string; shelfId: string | null; position: number }[]) => Promise<void>
@@ -189,6 +192,61 @@ export const useCollectionStore = create<CollectionState>((set, get) => {
         // Close the gap it left behind, so the old shelf stays numbered 0..n.
         ...source.map((entry, position) => ({ id: entry.id, shelfId: entry.shelfId, position })),
       ])
+    },
+
+    /**
+     * Pulls a record's details again from MusicBrainz or TMDB.
+     *
+     * The seed only ever runs once, so a browser that opened the archive
+     * before a source was wired up keeps the sparser rows it first saw — which
+     * is exactly why the films had no posters. This is the way back, and it
+     * is useful in its own right when a service gains artwork later.
+     */
+    async refreshItem(id) {
+      const item = get().items.find((entry) => entry.id === id)
+      if (!item) return 'failed'
+      if (!item.musicbrainzId && !item.tmdbId) return 'no-source'
+
+      try {
+        const [{ getRelease }, { fetchArtwork }, { getFilm }] = await Promise.all([
+          import('../services/musicbrainz'),
+          import('../services/coverArt'),
+          import('../services/tmdb'),
+        ])
+
+        const patch = item.tmdbId
+          ? await getFilm(Number(item.tmdbId))
+          : await getRelease(item.musicbrainzId)
+
+        if (item.musicbrainzId) {
+          const artwork = await fetchArtwork(item.musicbrainzId)
+          if (artwork.front) {
+            patch.coverImageUrl = artwork.front
+            patch.backgroundImageUrl = artwork.back || artwork.front
+          }
+          if (artwork.back) patch.backCoverImageUrl = artwork.back
+          if (artwork.disc) patch.discImageUrl = artwork.disc
+        }
+
+        // Never touches rating, notes, condition or date acquired: those are
+        // hers, and a refresh must not overwrite them.
+        await get().updateItem(id, patch)
+        return 'updated'
+      } catch {
+        return 'failed'
+      }
+    },
+
+    /** Repairs every record that is missing its artwork, in one pass. */
+    async refreshMissingArtwork() {
+      const stale = get().items.filter(
+        (item) => !item.coverImageUrl && (item.musicbrainzId || item.tmdbId),
+      )
+      let repaired = 0
+      for (const item of stale) {
+        if ((await get().refreshItem(item.id)) === 'updated') repaired += 1
+      }
+      return repaired
     },
 
     async connectFile() {

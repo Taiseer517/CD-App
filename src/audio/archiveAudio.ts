@@ -184,7 +184,21 @@ function strike(n: Nodes, frequency: number, level: number, bus: AudioNode, deca
  * leaps and sounds composed rather than scattered, and it rests often,
  * because a bell that never stops is a smoke alarm.
  */
-const A_MINOR = [220, 246.94, 261.63, 293.66, 329.63, 349.23, 392, 440, 493.88, 523.25]
+/**
+ * D Dorian rather than natural minor.
+ *
+ * Dorian is the mode plainchant and most surviving medieval song sit in, and
+ * its raised sixth is the single note that separates "old and strange" from
+ * "sad" — a minor scale on its own reads as mourning, which was heavier than
+ * this wants to be.
+ */
+const D_DORIAN = [
+  146.83, 164.81, 174.61, 196, 220, 246.94, 261.63,
+  293.66, 329.63, 349.23, 392, 440, 493.88, 523.25, 587.33,
+]
+
+/** Where the melody prefers to settle: the tonic, the fifth, the octave. */
+const RESTING = [0, 4, 7, 11]
 
 function startAmbience(n: Nodes): () => void {
   const { ctx } = n
@@ -214,17 +228,20 @@ function startAmbience(n: Nodes): () => void {
 
   // A drone well under the bells, so the room has a floor without humming.
   const bed = ctx.createGain()
-  bed.gain.value = 0.16
+  bed.gain.value = 0.13
   bed.connect(n.ambienceBus)
   const shape = ctx.createBiquadFilter()
   shape.type = 'lowpass'
-  shape.frequency.value = 340
+  shape.frequency.value = 420
   shape.connect(bed)
 
   for (const [frequency, level] of [
-    [55, 0.5],
-    [55.3, 0.36],
-    [82.5, 0.2],
+    [73.42, 0.5],
+    [73.75, 0.34],
+    [110, 0.2],
+    // A fifth up, very quiet: it fills the silence between strikes without
+    // becoming a chord you notice.
+    [220, 0.05],
   ]) {
     const osc = ctx.createOscillator()
     osc.type = 'sine'
@@ -236,29 +253,61 @@ function startAmbience(n: Nodes): () => void {
     voices.push(osc)
   }
 
-  let index = 4
+  // Start on the tonic so the first thing heard is the key.
+  let index = 7
 
   const play = () => {
     // Rest about a third of the time: the silences are what make it a
     // carillon drifting through a house rather than a tune being played at
     // you.
-    if (Math.random() < 0.28) return
+    if (Math.random() < 0.22) return
 
-    const step = [-2, -1, -1, 1, 1, 2][Math.floor(Math.random() * 6)]
-    index = Math.max(0, Math.min(A_MINOR.length - 1, index + step))
-    strike(n, A_MINOR[index], 0.16, bells, 4.5)
+    // Mostly steps, occasionally a leap, and pulled gently back toward a
+    // resting note when it has wandered — which is what makes a line sound
+    // like it is going somewhere rather than drifting.
+    const roll = Math.random()
+    const step =
+      roll < 0.62
+        ? [-1, 1][Math.floor(Math.random() * 2)]
+        : roll < 0.86
+          ? [-2, 2][Math.floor(Math.random() * 2)]
+          : [-4, 3, 4][Math.floor(Math.random() * 3)]
 
-    // Now and then a second bell just after, a third or fifth away.
-    if (Math.random() < 0.3) {
-      const partner = Math.max(0, Math.min(A_MINOR.length - 1, index + (Math.random() < 0.5 ? 2 : 4)))
-      window.setTimeout(() => strike(n, A_MINOR[partner], 0.1, bells, 4), 260 + Math.random() * 340)
+    index = Math.max(0, Math.min(D_DORIAN.length - 1, index + step))
+    if (!RESTING.includes(index) && Math.random() < 0.3) {
+      index = RESTING.reduce((best, candidate) =>
+        Math.abs(candidate - index) < Math.abs(best - index) ? candidate : best,
+      )
+    }
+
+    strike(n, D_DORIAN[index], 0.17, bells, 5.2)
+
+    // A companion a third or a fifth away, struck just after — two bells
+    // ringing together is the sound of a carillon rather than a doorbell.
+    if (Math.random() < 0.42) {
+      const interval = [2, 4, 7][Math.floor(Math.random() * 3)]
+      const partner = Math.max(0, Math.min(D_DORIAN.length - 1, index + interval))
+      window.setTimeout(
+        () => strike(n, D_DORIAN[partner], 0.1, bells, 4.6),
+        220 + Math.random() * 420,
+      )
+    }
+
+    // Rarely, a small falling phrase: three notes, close together. This is
+    // what turns a scattering of bells into something that sounds played.
+    if (Math.random() < 0.16) {
+      const start = index
+      for (let note = 1; note <= 2; note++) {
+        const at = Math.max(0, start - note)
+        window.setTimeout(() => strike(n, D_DORIAN[at], 0.09, bells, 3.4), 520 * note)
+      }
     }
   }
 
   // Ring once as it fades in rather than leaving several seconds of silence
   // to wonder whether the switch did anything.
   window.setTimeout(play, 900)
-  const melody = window.setInterval(play, 2400)
+  const melody = window.setInterval(play, 2200)
 
   // The tenor bell, rarely, an octave and a half below the melody.
   const tenor = window.setInterval(() => {

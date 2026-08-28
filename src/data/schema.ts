@@ -83,6 +83,11 @@ export const ShelfSchema = z.object({
   name: z.string().min(1),
   order: z.number().int().default(0),
   accent: z.string().default(''),
+  // Films are catalogued differently from records — a director rather than
+  // an artist, a runtime rather than a tracklist, no pressing or label that
+  // means anything — so they live in their own part of the wall rather than
+  // being shelved among the music.
+  kind: z.enum(['music', 'film']).default('music'),
 })
 export type Shelf = z.infer<typeof ShelfSchema>
 

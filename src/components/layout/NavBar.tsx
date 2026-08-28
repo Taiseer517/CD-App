@@ -4,6 +4,7 @@ import { SoundToggle } from './SoundToggle'
 const links = [
   { to: '/', label: 'Collection', end: true },
   { to: '/shelf', label: 'The Wall' },
+  { to: '/add', label: 'Add' },
   { to: '/wishlist', label: 'Wishlist' },
   { to: '/shuffle', label: 'Shuffle' },
   { to: '/stats', label: 'Stats' },

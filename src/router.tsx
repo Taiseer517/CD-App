@@ -7,6 +7,7 @@ import { AdminItemFormPage } from './pages/AdminItemFormPage'
 import { AdminPage } from './pages/AdminPage'
 import { HomePage } from './pages/HomePage'
 import { ItemDetailPage } from './pages/ItemDetailPage'
+import { AddPage } from './pages/AddPage'
 import { PrintPage } from './pages/PrintPage'
 import { ShufflePage } from './pages/ShufflePage'
 import { StatsPage } from './pages/StatsPage'
@@ -28,6 +29,7 @@ function AnimatedRoutes() {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<HomePage />} />
         <Route path="/item/:id" element={<ItemDetailPage />} />
+        <Route path="/add" element={<AddPage />} />
         <Route path="/wishlist" element={<WishlistPage />} />
         <Route path="/shuffle" element={<ShufflePage />} />
         <Route path="/print" element={<PrintPage />} />

@@ -1,13 +1,12 @@
 import { Link } from 'react-router-dom'
 import { PageTransition } from '../components/layout/PageTransition'
-import { AlbumSearch } from '../components/lookup/AlbumSearch'
+import { RefreshPanel } from '../components/admin/RefreshPanel'
 import { StoragePanel } from '../components/storage/StoragePanel'
 import { useCollectionStore } from '../store/useCollectionStore'
 
 export function AdminPage() {
   const items = useCollectionStore((state) => state.items)
   const deleteItem = useCollectionStore((state) => state.deleteItem)
-  const addItem = useCollectionStore((state) => state.addItem)
 
   const sorted = [...items].sort((a, b) => a.title.localeCompare(b.title))
 
@@ -19,13 +18,7 @@ export function AdminPage() {
   return (
     <PageTransition>
       <div className="space-y-6">
-        <AlbumSearch
-          actionLabel="Add to collection"
-          placeholder="Search for a record or film you own…"
-          onAdd={async (input) => {
-            await addItem(input)
-          }}
-        />
+        <RefreshPanel />
 
         <StoragePanel />
 
