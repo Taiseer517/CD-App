@@ -1,8 +1,14 @@
 import { AnimatePresence, motion } from 'framer-motion'
+import { lazy, Suspense, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { CollectionItem } from '../../data/schema'
+import { useReducedMotion } from '../../hooks/useReducedMotion'
 import { useCollectionStore } from '../../store/useCollectionStore'
 import { Rating } from '../common/Rating'
+
+const DiscViewer = lazy(() =>
+  import('../../scenes/DiscViewer').then((module) => ({ default: module.DiscViewer })),
+)
 
 function duration(ms: number | null): string {
   if (!ms) return ''
@@ -23,6 +29,8 @@ export function CaseDetailPanel({ item, onClose }: CaseDetailPanelProps) {
   const updateItem = useCollectionStore((state) => state.updateItem)
   const shelves = useCollectionStore((state) => state.shelves)
   const moveItemToShelf = useCollectionStore((state) => state.moveItemToShelf)
+  const reducedMotion = useReducedMotion()
+  const [viewingDisc, setViewingDisc] = useState(false)
 
   return (
     <AnimatePresence>
@@ -185,7 +193,16 @@ export function CaseDetailPanel({ item, onClose }: CaseDetailPanelProps) {
             )}
           </div>
 
-          <div className="flex gap-3 border-t border-void-800 p-5">
+          <div className="flex flex-wrap gap-3 border-t border-void-800 p-5">
+            {item.type !== 'dvd' && (
+              <button
+                type="button"
+                onClick={() => setViewingDisc(true)}
+                className="rounded-md border border-velvet-700 px-4 py-2 text-sm text-bone-100 transition-colors hover:border-velvet-400"
+              >
+                See the {item.type === 'vinyl' ? 'record' : 'disc'}
+              </button>
+            )}
             <Link
               to={`/item/${item.id}`}
               className="rounded-md border border-void-700 px-4 py-2 text-sm text-bone-200 transition-colors hover:border-velvet-400"
@@ -200,6 +217,16 @@ export function CaseDetailPanel({ item, onClose }: CaseDetailPanelProps) {
             </Link>
           </div>
         </motion.aside>
+      )}
+
+      {viewingDisc && item && (
+        <Suspense fallback={null}>
+          <DiscViewer
+            item={item}
+            reducedMotion={reducedMotion}
+            onClose={() => setViewingDisc(false)}
+          />
+        </Suspense>
       )}
     </AnimatePresence>
   )

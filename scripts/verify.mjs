@@ -158,6 +158,44 @@ if (found) {
 const after = await readPlacements()
 check('dragging a case moves it and persists', JSON.stringify(before) !== JSON.stringify(after))
 
+console.log('\nThe disc viewer')
+await page.goto(BASE + '#/', { waitUntil: 'load' })
+await page.waitForTimeout(2500)
+await page.locator('a[href*="#/item/"]').first().click()
+await page.waitForTimeout(2000)
+
+const discTrigger = page.locator('button:has-text("See the")').first()
+if ((await discTrigger.count()) > 0) {
+  await discTrigger.click()
+  await page.waitForTimeout(9000)
+
+  const viewer = await page.evaluate(() => {
+    const dialog = document.querySelector('[role="dialog"]')
+    const canvas = dialog?.querySelector('canvas')
+    const gl = canvas?.getContext('webgl2') || canvas?.getContext('webgl')
+    return { open: Boolean(dialog), live: Boolean(gl) && !gl.isContextLost() }
+  })
+  check('the disc viewer opens with a live canvas', viewer.open && viewer.live)
+  await page.screenshot({ path: `${SHOTS}/disc.png` })
+
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(900)
+  check(
+    'Escape closes the disc viewer',
+    (await page.locator('[role="dialog"]').count()) === 0,
+  )
+} else {
+  check('the disc viewer has a trigger', false, 'no "See the…" button found')
+}
+
+console.log('\nAttribution')
+const footer = await page.locator('footer').innerText()
+check('sources are credited', /MusicBrainz/.test(footer) && /Cover Art Archive/.test(footer))
+check(
+  'TMDB attribution is present, as their terms require',
+  !footer.includes('TMDB') || footer.includes('not endorsed or certified by TMDB'),
+)
+
 console.log('\n' + (problems.length ? `${problems.length} problem(s):\n` + [...new Set(problems)].join('\n') : 'All checks passed.'))
 await browser.close()
 process.exit(problems.length ? 1 : 0)

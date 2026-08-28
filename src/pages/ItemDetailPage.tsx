@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { EmptyState } from '../components/common/EmptyState'
 import { Rating } from '../components/common/Rating'
@@ -6,7 +6,13 @@ import { TagList } from '../components/common/TagList'
 import { PageTransition } from '../components/layout/PageTransition'
 import { cssUrl, safeImageUrl } from '../data/safeUrl'
 import type { CollectionItem } from '../data/schema'
+import { useReducedMotion } from '../hooks/useReducedMotion'
 import { useCollectionStore } from '../store/useCollectionStore'
+
+// The viewer pulls in three.js, so it only loads when she asks to see the disc.
+const DiscViewer = lazy(() =>
+  import('../scenes/DiscViewer').then((module) => ({ default: module.DiscViewer })),
+)
 
 function trackDuration(ms: number | null): string {
   if (!ms) return ''
@@ -59,6 +65,8 @@ export function ItemDetailPage() {
   const deleteItem = useCollectionStore((state) => state.deleteItem)
   const updateItem = useCollectionStore((state) => state.updateItem)
   const [showBack, setShowBack] = useState(false)
+  const [viewingDisc, setViewingDisc] = useState(false)
+  const reducedMotion = useReducedMotion()
 
   if (!item) {
     return (
@@ -132,18 +140,32 @@ export function ItemDetailPage() {
                 </button>
               )}
 
-              {item.discImageUrl && (
-                <div className="flex items-center gap-3 rounded-md border border-void-700 p-3">
-                  <img
-                    src={safeImageUrl(item.discImageUrl)}
-                    alt=""
-                    crossOrigin="anonymous"
-                    className="h-12 w-12 rounded-full object-cover"
-                  />
-                  <span className="text-xs uppercase tracking-wide text-bone-400">
-                    {item.type === 'vinyl' ? 'Label' : 'Disc'}
+              {item.type !== 'dvd' && (
+                <button
+                  type="button"
+                  onClick={() => setViewingDisc(true)}
+                  className="group flex w-full items-center gap-3 rounded-md border border-void-700 p-3 text-left transition-colors hover:border-velvet-400"
+                >
+                  {item.discImageUrl ? (
+                    <img
+                      src={safeImageUrl(item.discImageUrl)}
+                      alt=""
+                      crossOrigin="anonymous"
+                      className="h-12 w-12 shrink-0 rounded-full object-cover transition-transform duration-700 group-hover:rotate-45"
+                    />
+                  ) : (
+                    <span
+                      className="h-12 w-12 shrink-0 rounded-full border border-void-700 bg-[conic-gradient(from_0deg,#c9d6e8,#a37bd1,#e35263,#7fd4e8,#c9d6e8)] transition-transform duration-700 group-hover:rotate-45"
+                      aria-hidden="true"
+                    />
+                  )}
+                  <span className="min-w-0">
+                    <span className="block text-sm text-bone-100">
+                      See the {item.type === 'vinyl' ? 'record' : 'disc'}
+                    </span>
+                    <span className="block text-xs text-bone-400">Turn it over in your hands</span>
                   </span>
-                </div>
+                </button>
               )}
             </div>
 
@@ -295,6 +317,16 @@ export function ItemDetailPage() {
           </div>
         </div>
       </article>
+
+      {viewingDisc && (
+        <Suspense fallback={null}>
+          <DiscViewer
+            item={item}
+            reducedMotion={reducedMotion}
+            onClose={() => setViewingDisc(false)}
+          />
+        </Suspense>
+      )}
     </PageTransition>
   )
 }
