@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { AcquisitionTimeline } from '../components/stats/AcquisitionTimeline'
 import { GenreBreakdownChart } from '../components/stats/GenreBreakdownChart'
 import { StatTile } from '../components/stats/StatTile'
@@ -14,6 +15,16 @@ export function StatsPage() {
   return (
     <PageTransition>
       <div className="space-y-10">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-bone-400">What the archive holds.</p>
+          <Link
+            to="/print"
+            className="rounded-md border border-velvet-700 px-4 py-2 text-sm text-bone-200 transition-colors hover:border-velvet-400"
+          >
+            The archive on paper
+          </Link>
+        </div>
+
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <StatTile label="Owned items" value={owned.length} />
           <StatTile label="Wishlist items" value={wishlist.length} />

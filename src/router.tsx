@@ -6,6 +6,7 @@ import { AdminItemFormPage } from './pages/AdminItemFormPage'
 import { AdminPage } from './pages/AdminPage'
 import { HomePage } from './pages/HomePage'
 import { ItemDetailPage } from './pages/ItemDetailPage'
+import { PrintPage } from './pages/PrintPage'
 import { ShufflePage } from './pages/ShufflePage'
 import { StatsPage } from './pages/StatsPage'
 import { WishlistPage } from './pages/WishlistPage'
@@ -27,6 +28,7 @@ function AnimatedRoutes() {
         <Route path="/item/:id" element={<ItemDetailPage />} />
         <Route path="/wishlist" element={<WishlistPage />} />
         <Route path="/shuffle" element={<ShufflePage />} />
+        <Route path="/print" element={<PrintPage />} />
         <Route path="/stats" element={<StatsPage />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/admin/new" element={<AdminItemFormPage />} />

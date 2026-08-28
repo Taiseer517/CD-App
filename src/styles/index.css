@@ -133,3 +133,79 @@ h1, h2, h3, h4 {
   from { transform: rotateY(0deg); }
   to   { transform: rotateY(-52deg) translateZ(12px); }
 }
+
+/* --- The archive on paper --------------------------------------------
+   Printed through the browser rather than a PDF library: this gives real
+   pagination, vector type and selectable text, with nothing to maintain.
+   The screen palette is abandoned deliberately — a gothic archive is
+   handsome lit from within and unreadable on paper. */
+
+.print-sheet {
+  color: #16130f;
+  background: #fff;
+  padding: 2rem 2.25rem;
+  border-radius: 10px;
+  font-family: var(--font-body);
+}
+
+.print-title { text-align: center; padding-bottom: 1.5rem; border-bottom: 2px solid #16130f; }
+.print-title h1 { font-family: var(--font-display); font-size: 2rem; letter-spacing: 0.04em; margin: 0; }
+.print-subtitle { margin: 0.4rem 0 0; font-style: italic; color: #4a423a; }
+.print-meta { margin: 0.75rem 0 0; font-size: 0.85rem; color: #4a423a; }
+
+.print-summary { display: flex; justify-content: center; gap: 2rem; margin: 1.25rem 0 0; }
+.print-summary div { text-align: center; }
+.print-summary dt {
+  font-family: var(--font-display); font-size: 0.6rem; text-transform: uppercase;
+  letter-spacing: 0.16em; color: #6b6157;
+}
+.print-summary dd { margin: 0.15rem 0 0; font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+
+.print-shelf { margin-top: 2rem; }
+.print-shelf h2 {
+  font-family: var(--font-display); font-size: 1.05rem; letter-spacing: 0.05em;
+  text-transform: uppercase; margin: 0 0 0.6rem;
+  display: flex; justify-content: space-between; align-items: baseline;
+  border-bottom: 1px solid #16130f; padding-bottom: 0.35rem;
+}
+.print-count { font-family: var(--font-body); font-size: 0.75rem; text-transform: none; letter-spacing: 0; color: #6b6157; }
+
+.print-sheet table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+.print-sheet th {
+  text-align: left; font-family: var(--font-display); font-size: 0.58rem;
+  text-transform: uppercase; letter-spacing: 0.1em; color: #6b6157;
+  border-bottom: 1px solid #b8b0a5; padding: 0.3rem 0.5rem 0.3rem 0;
+}
+.print-sheet td { padding: 0.32rem 0.5rem 0.32rem 0; border-bottom: 1px solid #e3ded6; vertical-align: top; }
+.print-num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.print-index { margin-top: 2.25rem; }
+.print-index h2 {
+  font-family: var(--font-display); font-size: 1.05rem; text-transform: uppercase;
+  letter-spacing: 0.05em; border-bottom: 1px solid #16130f; padding-bottom: 0.35rem; margin: 0 0 0.75rem;
+}
+.print-index ul { list-style: none; margin: 0; padding: 0; columns: 2; column-gap: 2rem; font-size: 0.78rem; }
+.print-index li { break-inside: avoid; margin-bottom: 0.4rem; }
+.print-index-name { display: block; font-weight: 600; }
+.print-index-titles { color: #4a423a; }
+
+@media print {
+  @page { margin: 16mm 14mm; }
+
+  /* Only the document prints: the header, navigation and footer are the
+     app, not the catalogue. */
+  body { background: #fff !important; }
+  body::before { display: none !important; }
+  header, nav, footer, .print\:hidden { display: none !important; }
+
+  main { max-width: none !important; padding: 0 !important; }
+  .print-sheet { padding: 0; border-radius: 0; }
+
+  /* A record must never be split across a page, and each shelf's heading
+     must not be orphaned at the foot of one. */
+  .print-sheet tr, .print-index li { break-inside: avoid; }
+  .print-shelf { break-inside: auto; }
+  .print-shelf h2 { break-after: avoid; }
+  .print-index { break-before: page; }
+  thead { display: table-header-group; }
+}
