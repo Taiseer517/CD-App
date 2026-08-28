@@ -135,15 +135,16 @@ export function mapReleaseToPatch(release: RawRelease): Partial<CollectionItemIn
   const year = Number.parseInt((release.date ?? '').slice(0, 4), 10)
 
   const tracks: Track[] = []
-  for (const medium of release.media ?? []) {
+  ;(release.media ?? []).forEach((medium, index) => {
     for (const track of medium.tracks ?? []) {
       tracks.push({
         position: track.position ?? tracks.length + 1,
         title: track.title ?? '',
         lengthMs: typeof track.length === 'number' ? track.length : null,
+        disc: index + 1,
       })
     }
-  }
+  })
 
   const topGenre = [...(release.genres ?? [])]
     .sort((a, b) => (b.count ?? 0) - (a.count ?? 0))

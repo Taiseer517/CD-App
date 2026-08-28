@@ -14,6 +14,18 @@ function trackDuration(ms: number | null): string {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`
 }
 
+/** Tracks grouped by the disc they sit on, in order. */
+function discsOf(item: CollectionItem): [number, CollectionItem['trackList']][] {
+  const byDisc = new Map<number, CollectionItem['trackList']>()
+  for (const track of item.trackList) {
+    const disc = track.disc || 1
+    const bucket = byDisc.get(disc)
+    if (bucket) bucket.push(track)
+    else byDisc.set(disc, [track])
+  }
+  return [...byDisc.entries()].sort((a, b) => a[0] - b[0])
+}
+
 function totalRuntime(item: CollectionItem): string {
   const ms = item.trackList.reduce((sum, track) => sum + (track.lengthMs ?? 0), 0)
   if (!ms) return ''
@@ -21,6 +33,7 @@ function totalRuntime(item: CollectionItem): string {
   return `${minutes} min`
 }
 
+/** A field with no value is not rendered at all — never a dash, never a guess. */
 function DetailRow({ label, value }: { label: string; value: string }) {
   if (!value) return null
   return (
@@ -28,6 +41,14 @@ function DetailRow({ label, value }: { label: string; value: string }) {
       <dt className="text-xs uppercase tracking-wide text-bone-400">{label}</dt>
       <dd className="text-bone-200">{value}</dd>
     </div>
+  )
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <h3 className="font-display text-xs uppercase tracking-[0.18em] text-velvet-300">
+      {children}
+    </h3>
   )
 }
 
@@ -143,27 +164,70 @@ export function ItemDetailPage() {
                 />
               </div>
 
-              <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
-                <DetailRow label="Genre" value={item.genre} />
-                <DetailRow label="Label" value={item.label} />
-                <DetailRow label="Format" value={item.format} />
-                <DetailRow label="Catalogue" value={item.catalogNumber} />
-                <DetailRow label="Barcode" value={item.barcode} />
-                <DetailRow label="Pressed in" value={item.country} />
-                <DetailRow label="Condition / Edition" value={item.conditionOrEdition} />
-                <DetailRow label="Date acquired" value={item.dateAcquired} />
-                <DetailRow label="Status" value={item.wishlist ? 'Wishlist' : 'Owned'} />
-              </dl>
+              {/* Facts, and where they came from. Nothing here was typed by
+                  hand, and nothing appears unless the source supplied it. */}
+              <section>
+                <SectionLabel>
+                  {item.sourceName ? `From ${item.sourceName}` : 'Details'}
+                  {item.sourceUrl && (
+                    <a
+                      href={item.sourceUrl}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="ml-2 normal-case tracking-normal text-velvet-300 underline-offset-2 hover:underline"
+                    >
+                      view the source
+                    </a>
+                  )}
+                </SectionLabel>
 
-              <TagList tags={item.tags} />
+                <dl className="mt-2 grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
+                  <DetailRow label="Genre" value={item.genre} />
+                  <DetailRow label="Label" value={item.label} />
+                  <DetailRow label="Format" value={item.format} />
+                  <DetailRow label="Catalogue" value={item.catalogNumber} />
+                  <DetailRow label="Barcode" value={item.barcode} />
+                  <DetailRow label="Pressed in" value={item.country} />
+                  <DetailRow
+                    label="Runtime"
+                    value={item.runtimeMinutes ? `${item.runtimeMinutes} min` : ''}
+                  />
+                </dl>
 
-              {item.notes && (
-                <p
-                  className="border-l-2 pl-4 italic text-bone-300"
-                  style={{ borderColor: accent }}
-                >
-                  {item.notes}
-                </p>
+                {item.synopsis && (
+                  <p className="mt-3 max-w-prose text-sm leading-relaxed text-bone-300">
+                    {item.synopsis}
+                  </p>
+                )}
+
+                {item.cast.length > 0 && (
+                  <p className="mt-3 text-sm text-bone-400">
+                    <span className="text-xs uppercase tracking-wide">Cast </span>
+                    <span className="text-bone-200">{item.cast.join(', ')}</span>
+                  </p>
+                )}
+
+                <TagList tags={item.tags} />
+              </section>
+
+              {/* Hers. Kept visibly apart, so a rating is never mistaken for
+                  a review from somewhere else. */}
+              {(item.conditionOrEdition || item.dateAcquired || item.notes) && (
+                <section>
+                  <SectionLabel>Zarin&rsquo;s record</SectionLabel>
+                  <dl className="mt-2 grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
+                    <DetailRow label="Condition / Edition" value={item.conditionOrEdition} />
+                    <DetailRow label="Date acquired" value={item.dateAcquired} />
+                  </dl>
+                  {item.notes && (
+                    <p
+                      className="mt-3 border-l-2 pl-4 italic text-bone-300"
+                      style={{ borderColor: accent }}
+                    >
+                      {item.notes}
+                    </p>
+                  )}
+                </section>
               )}
 
               {item.trackList.length > 0 && (
@@ -176,22 +240,33 @@ export function ItemDetailPage() {
                       </span>
                     )}
                   </h3>
-                  <ol className="mt-3 grid gap-x-8 gap-y-1 sm:grid-cols-2">
-                    {item.trackList.map((track) => (
-                      <li
-                        key={`${track.position}-${track.title}`}
-                        className="flex justify-between gap-3 border-b border-void-800/60 py-1 text-sm"
-                      >
-                        <span className="min-w-0 truncate text-bone-300">
-                          <span className="mr-2 text-bone-400 tabular-nums">{track.position}</span>
-                          {track.title}
-                        </span>
-                        <span className="shrink-0 text-bone-400 tabular-nums">
-                          {trackDuration(track.lengthMs)}
-                        </span>
-                      </li>
-                    ))}
-                  </ol>
+                  {discsOf(item).map(([disc, tracks]) => (
+                    <div key={disc} className="mt-3">
+                      {discsOf(item).length > 1 && (
+                        <p className="mb-1 text-xs uppercase tracking-wide text-bone-400">
+                          Disc {disc}
+                        </p>
+                      )}
+                      <ol className="grid gap-x-8 gap-y-1 sm:grid-cols-2">
+                        {tracks.map((track) => (
+                          <li
+                            key={`${disc}-${track.position}-${track.title}`}
+                            className="flex justify-between gap-3 border-b border-void-800/60 py-1 text-sm"
+                          >
+                            <span className="min-w-0 truncate text-bone-300">
+                              <span className="mr-2 text-bone-400 tabular-nums">
+                                {track.position}
+                              </span>
+                              {track.title}
+                            </span>
+                            <span className="shrink-0 text-bone-400 tabular-nums">
+                              {trackDuration(track.lengthMs)}
+                            </span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  ))}
                 </div>
               )}
 

@@ -52,7 +52,30 @@ describe('mapReleaseToPatch', () => {
   it('flattens tracks across discs and keeps their lengths', () => {
     const patch = mapReleaseToPatch(bloodyKisses)
     expect(patch.trackList).toHaveLength(2)
-    expect(patch.trackList?.[1]).toEqual({ position: 2, title: 'Christian Woman', lengthMs: 538133 })
+    expect(patch.trackList?.[1]).toEqual({
+      position: 2,
+      title: 'Christian Woman',
+      lengthMs: 538133,
+      disc: 1,
+    })
+  })
+
+  it('records which disc a track sits on, since numbering restarts per disc', () => {
+    const double = {
+      ...bloodyKisses,
+      media: [
+        { format: 'CD', tracks: [{ position: 1, title: 'Opening', length: 1000 }] },
+        { format: 'CD', tracks: [{ position: 1, title: 'Second disc, first track', length: 2000 }] },
+      ],
+    }
+
+    const tracks = mapReleaseToPatch(double).trackList ?? []
+    // Both are "track 1"; only the disc number tells them apart, and without
+    // it a two-disc tracklist reads as though it restarts by mistake.
+    expect(tracks.map((track) => [track.disc, track.position])).toEqual([
+      [1, 1],
+      [2, 1],
+    ])
   })
 
   it('labels a multi-disc set by its disc count', () => {

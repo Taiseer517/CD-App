@@ -7,6 +7,9 @@ export const TrackSchema = z.object({
   position: z.number().int().min(0),
   title: z.string(),
   lengthMs: z.number().int().nullable().default(null),
+  // Track numbers restart on each disc of a set, so without this a 2×CD
+  // tracklist reads as though it counts 1..10 and then starts over by mistake.
+  disc: z.number().int().min(1).default(1),
 })
 export type Track = z.infer<typeof TrackSchema>
 

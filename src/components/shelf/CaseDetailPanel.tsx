@@ -67,25 +67,70 @@ export function CaseDetailPanel({ item, onClose }: CaseDetailPanelProps) {
               />
             </div>
 
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-              {[
-                ['Genre', item.genre],
-                ['Label', item.label],
-                ['Format', item.format],
-                ['Catalogue', item.catalogNumber],
-                ['Pressed in', item.country],
-                ['Barcode', item.barcode],
-                ['Condition', item.conditionOrEdition],
-                ['Acquired', item.dateAcquired],
-              ]
-                .filter(([, value]) => Boolean(value))
-                .map(([label, value]) => (
-                  <div key={label}>
-                    <dt className="text-xs uppercase tracking-wide text-bone-400">{label}</dt>
-                    <dd className="text-bone-200">{value}</dd>
-                  </div>
-                ))}
-            </dl>
+            {/* Sourced facts, and hers, kept apart. A field the source did
+                not supply is simply absent rather than shown empty. */}
+            <div>
+              <p className="font-display text-[0.62rem] uppercase tracking-[0.18em] text-velvet-300">
+                {item.sourceName ? `From ${item.sourceName}` : 'Details'}
+                {item.sourceUrl && (
+                  <a
+                    href={item.sourceUrl}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="ml-2 normal-case tracking-normal underline-offset-2 hover:underline"
+                  >
+                    source
+                  </a>
+                )}
+              </p>
+              <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                {(
+                  [
+                    ['Genre', item.genre],
+                    ['Label', item.label],
+                    ['Format', item.format],
+                    ['Catalogue', item.catalogNumber],
+                    ['Pressed in', item.country],
+                    ['Barcode', item.barcode],
+                    ['Runtime', item.runtimeMinutes ? `${item.runtimeMinutes} min` : ''],
+                  ] as [string, string][]
+                )
+                  .filter(([, value]) => Boolean(value))
+                  .map(([label, value]) => (
+                    <div key={label}>
+                      <dt className="text-xs uppercase tracking-wide text-bone-400">{label}</dt>
+                      <dd className="text-bone-200">{value}</dd>
+                    </div>
+                  ))}
+              </dl>
+            </div>
+
+            {item.synopsis && (
+              <p className="text-sm leading-relaxed text-bone-300">{item.synopsis}</p>
+            )}
+
+            {(item.conditionOrEdition || item.dateAcquired) && (
+              <div>
+                <p className="font-display text-[0.62rem] uppercase tracking-[0.18em] text-velvet-300">
+                  Zarin&rsquo;s record
+                </p>
+                <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  {(
+                    [
+                      ['Condition', item.conditionOrEdition],
+                      ['Acquired', item.dateAcquired],
+                    ] as [string, string][]
+                  )
+                    .filter(([, value]) => Boolean(value))
+                    .map(([label, value]) => (
+                      <div key={label}>
+                        <dt className="text-xs uppercase tracking-wide text-bone-400">{label}</dt>
+                        <dd className="text-bone-200">{value}</dd>
+                      </div>
+                    ))}
+                </dl>
+              </div>
+            )}
 
             <div>
               <label
