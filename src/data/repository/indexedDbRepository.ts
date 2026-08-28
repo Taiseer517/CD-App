@@ -82,8 +82,27 @@ async function ensureSeeded(): Promise<void> {
   await writeMeta(SEEDED_KEY, true)
 }
 
+/**
+ * Reads the store and brings every record up to the current schema.
+ *
+ * Records written before a field existed come back without it, and the app
+ * then reads `item.cast.length` on undefined and white-screens. Parsing on the
+ * way out lets the schema's defaults fill the gaps, which is what they are
+ * for — and means adding a field never strands the data already saved.
+ */
+async function readItems(): Promise<CollectionItem[]> {
+  const stored = await readAll<unknown>(STORE_ITEMS)
+  const items: CollectionItem[] = []
+  for (const entry of stored) {
+    const parsed = CollectionItemSchema.safeParse(entry)
+    if (parsed.success) items.push(parsed.data)
+    else console.warn('Skipping a record that no longer fits the schema', entry, parsed.error.flatten())
+  }
+  return items
+}
+
 async function requireItem(id: string): Promise<{ items: CollectionItem[]; item: CollectionItem }> {
-  const items = await readAll<CollectionItem>(STORE_ITEMS)
+  const items = await readItems()
   const item = items.find((entry) => entry.id === id)
   if (!item) throw new Error(`Collection item not found: ${id}`)
   return { items, item }
@@ -92,12 +111,12 @@ async function requireItem(id: string): Promise<{ items: CollectionItem[]; item:
 export const indexedDbRepository: CollectionRepository = {
   async getAll() {
     await ensureSeeded()
-    return readAll<CollectionItem>(STORE_ITEMS)
+    return readItems()
   },
 
   async getById(id) {
     await ensureSeeded()
-    const items = await readAll<CollectionItem>(STORE_ITEMS)
+    const items = await readItems()
     return items.find((item) => item.id === id)
   },
 
@@ -142,7 +161,7 @@ export const indexedDbRepository: CollectionRepository = {
     await deleteOne(STORE_SHELVES, id)
     // Items keep existing; they fall back to Unfiled rather than vanishing
     // along with the shelf they happened to be sitting on.
-    const items = await readAll<CollectionItem>(STORE_ITEMS)
+    const items = await readItems()
     const orphans = items.filter((item) => item.shelfId === id)
     if (orphans.length > 0) {
       await replaceStore(
@@ -154,7 +173,7 @@ export const indexedDbRepository: CollectionRepository = {
 
   async savePlacements(placements) {
     if (placements.length === 0) return
-    const items = await readAll<CollectionItem>(STORE_ITEMS)
+    const items = await readItems()
     const byId = new Map(placements.map((placement) => [placement.id, placement]))
     await replaceStore(
       STORE_ITEMS,
@@ -172,10 +191,7 @@ export const indexedDbRepository: CollectionRepository = {
   },
 
   async snapshot(): Promise<CollectionSnapshot> {
-    const [items, shelves] = await Promise.all([
-      readAll<CollectionItem>(STORE_ITEMS),
-      readAll<Shelf>(STORE_SHELVES),
-    ])
+    const [items, shelves] = await Promise.all([readItems(), readAll<Shelf>(STORE_SHELVES)])
     return { items, shelves: shelves.sort((a, b) => a.order - b.order) }
   },
 }

@@ -89,6 +89,43 @@ describe('indexedDbRepository', () => {
     expect(placed.map((item) => item.position).sort()).toEqual([0, 1, 2])
   })
 
+  it('brings a record saved before a field existed up to the current schema', async () => {
+    await indexedDbRepository.getAll()
+
+    // Exactly what an existing browser holds after the app gains a field: the
+    // stored row predates it. Returned raw, the UI reads .length on undefined
+    // and the whole page goes blank — which is what it did.
+    const { writeOne } = await import('../idb')
+    await writeOne('items', {
+      id: 'legacy-row',
+      type: 'cd',
+      title: 'Saved Before The Update',
+      year: 1994,
+    })
+
+    const found = await indexedDbRepository.getById('legacy-row')
+
+    expect(found).toBeDefined()
+    expect(found?.cast).toEqual([])
+    expect(found?.synopsis).toBe('')
+    expect(found?.sourceName).toBe('')
+    expect(found?.trackList).toEqual([])
+    expect(found?.shelfId).toBeNull()
+  })
+
+  it('skips a record too broken to repair rather than failing the whole read', async () => {
+    const before = await indexedDbRepository.getAll()
+    const { writeOne } = await import('../idb')
+    // No title and no type: nothing the schema can default its way out of.
+    await writeOne('items', { id: 'rubbish', nonsense: true })
+
+    const items = await indexedDbRepository.getAll()
+
+    expect(items.some((item) => item.id === 'rubbish')).toBe(false)
+    // The rest of the collection still comes back.
+    expect(items).toHaveLength(before.length)
+  })
+
   it('replaces everything on import and reports it through snapshot', async () => {
     await indexedDbRepository.getAll()
     const replacement = {
