@@ -31,9 +31,9 @@ brightest thing on screen.
 
 ### Persistence — three tiers
 
-The current `localRepository` writes through a Vite dev-server middleware
-and is a no-op in production. On GitHub Pages there is no write path, so
-today an added item vanishes on refresh. Replaced by:
+The original `localRepository` wrote through a Vite dev-server middleware
+and was a no-op in production, so on GitHub Pages an added item vanished
+on refresh. Replaced by:
 
 | Tier | Mechanism | Whose | Purpose |
 |---|---|---|---|
@@ -114,52 +114,46 @@ migration is needed on first load.
 
 ## Roadmap
 
-Ordered so the app becomes *trustworthy* before it becomes *impressive*.
+Ordered so the app became *trustworthy* before it became *impressive*.
 There is no point polishing a shelf that forgets what she put on it.
 
-### Phase 2 — Persistence that survives  *(next)*
-Swap `localRepository` for an IndexedDB repository behind the existing
-`CollectionRepository` interface — the abstraction is already clean, so
-this is a swap, not a rewrite. Add File System Access auto-save with a
-single "Keep my archive here" button. Add Export / Import JSON as the
-universal escape hatch. **Exit criterion: she adds a CD, closes the
-laptop, reopens tomorrow, and it is still there.**
+### Phase 1 — Foundation · done
+Catalogue, detail, wishlist, stats, admin CRUD. Zod validation, Zustand,
+hash routing. The palette and type system everything else inherits.
 
-### Phase 3 — Artwork and metadata
-MusicBrainz search in the add/edit form: type a title, pick the pressing
-that matches the case in her hand, and label, year, barcode, catalogue
-number and tracklist fill themselves. Cover, back cover and disc face pull
-from CAA. TMDB does the same for films. Sample a dominant colour from each
-cover at import to drive per-item lighting. Backfill the 10 seed items.
+### Phase 2 — Persistence that survives · done
+IndexedDB behind the existing repository interface, File System Access
+auto-save with permission recovery, and Export / Import. Seeds a starting
+arrangement by medium on first run, guarded by a marker so emptying the
+collection is not undone on reload.
 
-### Phase 4 — The shelf, properly
-Replace the flat row of eight with a real bookcase: multiple named
-shelves, vertical scroll, depth. Drag to rearrange within and between
-shelves, persisted. Per-medium behaviour — this is the "life" of it:
+### Phase 3 — Artwork and metadata · done
+MusicBrainz release search resolving the specific pressing, and Cover Art
+Archive for front, back and disc scans. Dominant colour sampled per sleeve.
+All eight music records backfilled with real catalogue numbers, barcodes,
+tracklists and artwork by `scripts/enrich-collection.mjs`.
 
-- **CD** — jewel case, hinged. Click opens it; the disc catches an
-  iridescent sheen as it turns. Back cover shows the tracklist.
-- **Vinyl** — pull the sleeve, slide the record out, drop it spinning at
-  33rpm with the label centred and legible.
-- **DVD** — taller case, flips to a back cover with the synopsis.
+### Phase 4 — The shelf, properly · done
+Named shelves with drag-to-rearrange, persisted. Per-medium behaviour: the
+CD's disc slides out and turns, the record drops spinning, every case flips
+to its real back cover. Rows size to their contents, the case sizes to the
+rows, and genre drives the ambience.
 
-Genre drives the ambience: doom slows the idle drift and thickens the fog;
-gothic rock warms the candlelight toward violet. Subtle — a mood shift,
-not a light show.
+### Phase 5 — Ship it · done
+Installable PWA with a generated pointed-arch icon set and offline art
+caching. Pages workflow deriving `BASE_PATH` from the repository name.
 
-### Phase 5 — Ship it
-GitHub Actions workflow building to Pages. **Note: `vite.config.ts` hard-codes
-`base: '/the-archive/'`, so the repository must be named `the-archive` or
-this needs changing — otherwise every asset 404s on deploy.** PWA manifest
-and service worker. Maintainer-only sync route.
+### Phase 6 — Still outstanding
 
-### Phase 6 — Polish
-Detail page as a full-bleed spread using the release's own artwork as an
-atmospheric background. Stats page with genre and acquisition charts, made
-worth looking at. Optional 30s preview audio. Loan tracking — who borrowed
-what. Barcode scanning to add a CD by pointing a webcam at the case.
-
----
+- **TMDB for the two films.** Needs the key; until then Nosferatu and
+  Dracula carry drawn labels rather than posters. Everything else is wired,
+  so this is a small connector plus the key.
+- **The maintainer-only GitHub sync route.** Designed above and unbuilt.
+  Nothing depends on it: her copy already saves to her own machine.
+- **Shelf reordering.** Shelves can be created, renamed and deleted, and
+  items move freely between them, but the rows themselves cannot yet be
+  dragged into a different vertical order.
+- Optional 30s previews, loan tracking, barcode scanning by webcam.
 
 ## Performance budget
 

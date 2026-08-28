@@ -49,9 +49,15 @@ export async function fetchArtwork(mbid: string): Promise<Artwork> {
   const data = (await response.json()) as { images?: RawImage[] }
   const images = data.images ?? []
 
-  const front = images.find((image) => image.front) ?? images.find((i) => i.types?.includes('Front'))
   const back = images.find((image) => image.back) ?? images.find((i) => i.types?.includes('Back'))
   const disc = images.find((image) => image.types?.includes('Medium'))
+
+  // Some releases have scans but none tagged Front. Falling back to the first
+  // image that is not the back or the disc beats showing no sleeve at all.
+  const front =
+    images.find((image) => image.front) ??
+    images.find((image) => image.types?.includes('Front')) ??
+    images.find((image) => image !== back && image !== disc)
 
   return {
     front: front ? pickThumbnail(front, '500') : '',

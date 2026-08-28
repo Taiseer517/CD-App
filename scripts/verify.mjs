@@ -1,0 +1,125 @@
+/**
+ * Drives a real browser over the running app and reports anything broken.
+ *
+ * Covers what unit tests cannot: that the WebGL scene actually builds, that
+ * cover art reaches the GPU, and that dragging a case between shelves lands in
+ * IndexedDB. Screenshots are written to docs/screens/ for eyeballing.
+ *
+ *   npm run dev              # in one terminal
+ *   node scripts/verify.mjs  # in another
+ *
+ * Pass a base URL to check a production preview instead:
+ *   npm run preview
+ *   node scripts/verify.mjs http://localhost:4173/the-archive/
+ */
+import { chromium } from 'playwright'
+import { mkdirSync } from 'node:fs'
+
+const BASE = (process.argv[2] || 'http://localhost:5173/').replace(/\/?$/, '/')
+const SHOTS = 'docs/screens'
+mkdirSync(SHOTS, { recursive: true })
+
+// SwiftShader lets this run on a machine with no usable GPU, such as CI.
+const browser = await chromium.launch({
+  args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
+})
+// A fresh context starts with empty storage, so this exercises a first run.
+const page = await browser.newPage({ viewport: { width: 1440, height: 950 } })
+
+const problems = []
+page.on('pageerror', (error) => problems.push(`pageerror: ${error.message.split('\n')[0]}`))
+page.on('console', (message) => {
+  if (message.type() === 'error') problems.push(`console: ${message.text().slice(0, 200)}`)
+})
+
+const check = (label, ok, detail = '') => {
+  console.log(`  ${ok ? '✓' : '✗'} ${label}${detail ? ` — ${detail}` : ''}`)
+  if (!ok) problems.push(`failed check: ${label} ${detail}`)
+}
+
+console.log('\nPages')
+for (const [name, hash] of [
+  ['collection', '#/'],
+  ['shelf', '#/shelf'],
+  ['wishlist', '#/wishlist'],
+  ['stats', '#/stats'],
+  ['admin', '#/admin'],
+  ['add', '#/admin/new'],
+]) {
+  await page.goto(BASE + hash, { waitUntil: 'load' })
+  await page.waitForTimeout(name === 'shelf' ? 9000 : 1500)
+  await page.screenshot({ path: `${SHOTS}/${name}.png` })
+  const text = await page.locator('main').innerText()
+  check(name, text.trim().length > 40, `${text.replace(/\s+/g, ' ').slice(0, 46)}…`)
+}
+
+console.log('\nThe 3D scene')
+await page.goto(BASE + '#/shelf', { waitUntil: 'load' })
+await page.waitForTimeout(9000)
+
+const gl = await page.evaluate(() => {
+  const canvas = document.querySelector('canvas')
+  if (!canvas) return null
+  const context = canvas.getContext('webgl2') || canvas.getContext('webgl')
+  return context ? { lost: context.isContextLost(), w: canvas.width } : null
+})
+check('canvas has a live WebGL context', Boolean(gl) && !gl.lost)
+
+// Cover art reaching the GPU is the difference between a shelf of sleeves and
+// a shelf of grey slabs, and it fails silently.
+const artRequests = []
+page.on('response', (res) => {
+  if (/coverartarchive|archive\.org/.test(res.url()) && res.status() === 200) artRequests.push(res.url())
+})
+await page.reload({ waitUntil: 'load' })
+await page.waitForTimeout(9000)
+check('cover art downloaded', artRequests.length > 0, `${artRequests.length} images`)
+
+const readPlacements = () =>
+  page.evaluate(async () => {
+    const request = indexedDB.open('the-archive')
+    const db = await new Promise((resolve) => {
+      request.onsuccess = () => resolve(request.result)
+    })
+    const read = (store) =>
+      new Promise((resolve) => {
+        const r = db.transaction(store, 'readonly').objectStore(store).getAll()
+        r.onsuccess = () => resolve(r.result)
+      })
+    const [items, shelves] = await Promise.all([read('items'), read('shelves')])
+    const names = new Map(shelves.map((s) => [s.id, s.name]))
+    return items
+      .filter((i) => !i.wishlist)
+      .map((i) => `${i.title} -> ${names.get(i.shelfId) ?? 'Unfiled'} @${i.position}`)
+      .sort()
+  })
+
+const before = await readPlacements()
+check('collection seeded with shelves', before.length > 0 && !before.every((p) => p.includes('Unfiled')))
+
+console.log('\nInteraction')
+const box = await page.locator('canvas').boundingBox()
+
+await page.mouse.click(box.x + 255, box.y + 143)
+await page.waitForTimeout(1600)
+const panel = await page.locator('aside h3').first().textContent().catch(() => null)
+check('clicking a case opens its details', Boolean(panel), panel ?? 'no panel')
+await page.screenshot({ path: `${SHOTS}/selected.png` })
+await page.locator('aside button[aria-label="Close details"]').click().catch(() => {})
+await page.waitForTimeout(800)
+
+await page.mouse.move(box.x + 255, box.y + 143)
+await page.mouse.down()
+for (let step = 1; step <= 12; step++) {
+  await page.mouse.move(box.x + 255 + step * 6, box.y + 143 + step * 39)
+  await page.waitForTimeout(40)
+}
+await page.mouse.up()
+await page.waitForTimeout(2000)
+
+const after = await readPlacements()
+check('dragging a case moves it and persists', JSON.stringify(before) !== JSON.stringify(after))
+
+console.log('\n' + (problems.length ? `${problems.length} problem(s):\n` + [...new Set(problems)].join('\n') : 'All checks passed.'))
+await browser.close()
+process.exit(problems.length ? 1 : 0)

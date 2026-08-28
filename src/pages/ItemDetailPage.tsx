@@ -1,9 +1,24 @@
+import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { EmptyState } from '../components/common/EmptyState'
 import { Rating } from '../components/common/Rating'
 import { TagList } from '../components/common/TagList'
 import { PageTransition } from '../components/layout/PageTransition'
+import type { CollectionItem } from '../data/schema'
 import { useCollectionStore } from '../store/useCollectionStore'
+
+function trackDuration(ms: number | null): string {
+  if (!ms) return ''
+  const total = Math.round(ms / 1000)
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`
+}
+
+function totalRuntime(item: CollectionItem): string {
+  const ms = item.trackList.reduce((sum, track) => sum + (track.lengthMs ?? 0), 0)
+  if (!ms) return ''
+  const minutes = Math.round(ms / 60000)
+  return `${minutes} min`
+}
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   if (!value) return null
@@ -20,6 +35,7 @@ export function ItemDetailPage() {
   const navigate = useNavigate()
   const item = useCollectionStore((state) => state.items.find((entry) => entry.id === id))
   const deleteItem = useCollectionStore((state) => state.deleteItem)
+  const [showBack, setShowBack] = useState(false)
 
   if (!item) {
     return (
@@ -29,41 +45,84 @@ export function ItemDetailPage() {
     )
   }
 
-  const handleDelete = async () => {
-    if (!window.confirm(`Remove "${item.title}" from the collection?`)) return
-    await deleteItem(item.id)
-    navigate(item.wishlist ? '/wishlist' : '/')
+  const accent = item.dominantColor || '#7c4fb0'
+  const facing = showBack && item.backCoverImageUrl ? item.backCoverImageUrl : item.coverImageUrl
+
+  async function handleDelete() {
+    if (!window.confirm(`Remove "${item!.title}" from the collection?`)) return
+    await deleteItem(item!.id)
+    navigate(item!.wishlist ? '/wishlist' : '/')
   }
 
   return (
     <PageTransition>
       <article className="relative overflow-hidden rounded-xl border border-void-700">
         {item.backgroundImageUrl && (
-          <div
-            className="absolute inset-0 bg-cover bg-center opacity-30"
-            style={{ backgroundImage: `url(${item.backgroundImageUrl})` }}
-            aria-hidden="true"
-          />
+          <>
+            <div
+              className="absolute inset-0 scale-110 bg-cover bg-center opacity-25 blur-xl"
+              style={{ backgroundImage: `url(${item.backgroundImageUrl})` }}
+              aria-hidden="true"
+            />
+            {/* Tinted with the sleeve's own colour, so each record lights its
+                own page rather than every page sharing one purple wash. */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `radial-gradient(120% 80% at 20% 0%, ${accent}22, transparent 60%)`,
+              }}
+              aria-hidden="true"
+            />
+          </>
         )}
-        <div className="relative bg-void-950/70 p-8 backdrop-blur-sm">
-          <div className="grid gap-8 sm:grid-cols-[240px_1fr]">
-            <div className="aspect-square overflow-hidden rounded-lg border border-void-700 bg-gradient-to-br from-velvet-900 via-void-900 to-void-950">
-              {item.coverImageUrl ? (
-                <img
-                  src={item.coverImageUrl}
-                  alt={`${item.title} cover art`}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center">
-                  <span className="font-display text-4xl tracking-widest text-bone-400/30">
-                    {item.type.toUpperCase()}
+
+        <div className="relative bg-void-950/80 p-8 backdrop-blur-sm">
+          <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
+            <div className="space-y-3">
+              <div
+                className="aspect-square overflow-hidden rounded-lg border border-void-700 bg-gradient-to-br from-velvet-900 via-void-900 to-void-950"
+                style={{ boxShadow: `0 18px 50px -24px ${accent}` }}
+              >
+                {facing ? (
+                  <img
+                    src={facing}
+                    alt={`${item.title} ${showBack ? 'back cover' : 'cover art'}`}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <span className="font-display text-4xl tracking-widest text-bone-400/30">
+                      {item.type.toUpperCase()}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {item.backCoverImageUrl && (
+                <button
+                  type="button"
+                  onClick={() => setShowBack((current) => !current)}
+                  className="w-full rounded-md border border-void-700 px-3 py-2 text-sm text-bone-300 transition-colors hover:border-velvet-400 hover:text-bone-100"
+                >
+                  {showBack ? 'Show the front' : 'Turn it over'}
+                </button>
+              )}
+
+              {item.discImageUrl && (
+                <div className="flex items-center gap-3 rounded-md border border-void-700 p-3">
+                  <img
+                    src={item.discImageUrl}
+                    alt=""
+                    className="h-12 w-12 rounded-full object-cover"
+                  />
+                  <span className="text-xs uppercase tracking-wide text-bone-400">
+                    {item.type === 'vinyl' ? 'Label' : 'Disc'}
                   </span>
                 </div>
               )}
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
                 <h2 className="font-display text-3xl text-bone-100">{item.title}</h2>
                 <p className="text-lg text-bone-400">
@@ -74,10 +133,13 @@ export function ItemDetailPage() {
 
               <Rating value={item.rating} />
 
-              <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+              <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
                 <DetailRow label="Genre" value={item.genre} />
                 <DetailRow label="Label" value={item.label} />
                 <DetailRow label="Format" value={item.format} />
+                <DetailRow label="Catalogue" value={item.catalogNumber} />
+                <DetailRow label="Barcode" value={item.barcode} />
+                <DetailRow label="Pressed in" value={item.country} />
                 <DetailRow label="Condition / Edition" value={item.conditionOrEdition} />
                 <DetailRow label="Date acquired" value={item.dateAcquired} />
                 <DetailRow label="Status" value={item.wishlist ? 'Wishlist' : 'Owned'} />
@@ -86,10 +148,50 @@ export function ItemDetailPage() {
               <TagList tags={item.tags} />
 
               {item.notes && (
-                <p className="border-l-2 border-blood-700 pl-4 italic text-bone-300">{item.notes}</p>
+                <p
+                  className="border-l-2 pl-4 italic text-bone-300"
+                  style={{ borderColor: accent }}
+                >
+                  {item.notes}
+                </p>
               )}
 
-              <div className="flex gap-3 pt-4">
+              {item.trackList.length > 0 && (
+                <div>
+                  <h3 className="font-display text-sm uppercase tracking-wide text-velvet-300">
+                    Tracklist
+                    {totalRuntime(item) && (
+                      <span className="ml-2 text-bone-400 normal-case">
+                        · {totalRuntime(item)}
+                      </span>
+                    )}
+                  </h3>
+                  <ol className="mt-3 grid gap-x-8 gap-y-1 sm:grid-cols-2">
+                    {item.trackList.map((track) => (
+                      <li
+                        key={`${track.position}-${track.title}`}
+                        className="flex justify-between gap-3 border-b border-void-800/60 py-1 text-sm"
+                      >
+                        <span className="min-w-0 truncate text-bone-300">
+                          <span className="mr-2 text-bone-400 tabular-nums">{track.position}</span>
+                          {track.title}
+                        </span>
+                        <span className="shrink-0 text-bone-400 tabular-nums">
+                          {trackDuration(track.lengthMs)}
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <Link
+                  to="/shelf"
+                  className="rounded-md border border-void-700 px-4 py-2 text-sm text-bone-200 transition-colors hover:border-velvet-400"
+                >
+                  On the shelf
+                </Link>
                 <Link
                   to={`/admin/edit/${item.id}`}
                   className="rounded-md border border-velvet-700 px-4 py-2 text-sm text-bone-200 transition-colors hover:border-velvet-400"
