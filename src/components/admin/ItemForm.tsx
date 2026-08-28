@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { CollectionItemInput, MediaType } from '../../data/schema'
+import { emptyCollectionItemInput, type CollectionItemInput, type MediaType } from '../../data/schema'
 
 interface ItemFormProps {
   initialValues?: CollectionItemInput
@@ -8,30 +8,13 @@ interface ItemFormProps {
   onSaveAndAddAnother?: (input: CollectionItemInput) => Promise<void>
 }
 
-const emptyValues: CollectionItemInput = {
-  type: 'cd',
-  title: '',
-  artistOrDirector: '',
-  year: new Date().getFullYear(),
-  label: '',
-  genre: '',
-  format: '',
-  coverImageUrl: '',
-  backgroundImageUrl: '',
-  tags: [],
-  rating: 0,
-  notes: '',
-  conditionOrEdition: '',
-  dateAcquired: '',
-  wishlist: false,
-}
 
 const inputClass =
   'w-full rounded-md border border-void-700 bg-void-900 px-3 py-2 text-bone-100 placeholder:text-bone-400/60 focus:border-blood-500 focus:outline-none'
 const labelClass = 'block text-xs uppercase tracking-wide text-bone-400 mb-1'
 
 export function ItemForm({ initialValues, submitLabel, onSubmit, onSaveAndAddAnother }: ItemFormProps) {
-  const [values, setValues] = useState<CollectionItemInput>(initialValues ?? emptyValues)
+  const [values, setValues] = useState<CollectionItemInput>(initialValues ?? emptyCollectionItemInput())
   const [tagsText, setTagsText] = useState(initialValues?.tags.join(', ') ?? '')
   const [saving, setSaving] = useState(false)
 
@@ -64,7 +47,7 @@ export function ItemForm({ initialValues, submitLabel, onSubmit, onSaveAndAddAno
     setSaving(true)
     try {
       await onSaveAndAddAnother(buildPayload())
-      setValues(emptyValues)
+      setValues(emptyCollectionItemInput())
       setTagsText('')
     } finally {
       setSaving(false)

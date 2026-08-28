@@ -1,14 +1,13 @@
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
-import { localWriteApi } from './vite-plugins/localWriteApi.js'
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
   // Only the production build needs the GitHub Pages subpath — local dev
   // stays at a plain "/" so `npm run dev` just works at localhost:5173.
   base: command === 'build' ? '/the-archive/' : '/',
-  plugins: [react(), tailwindcss(), localWriteApi()],
+  plugins: [react(), tailwindcss()],
 
   optimizeDeps: {
     // Listing the heavy deps explicitly lets Vite pre-bundle them directly
@@ -46,10 +45,13 @@ export default defineConfig(({ command }) => ({
   build: {
     rollupOptions: {
       output: {
-        // Keep the 3D stack in its own chunk so the Phase 1 grid pages don't
-        // pay for three.js on first load.
-        manualChunks: {
-          three: ['three', '@react-three/fiber', '@react-three/drei', '@react-three/postprocessing'],
+        // Keep the 3D stack in its own chunk so the grid pages don't pay for
+        // three.js on first load. Written as a function rather than the object
+        // form because Rollup's object-form types don't narrow correctly here.
+        manualChunks(id: string) {
+          if (/node_modules\/(three|@react-three|@react-spring\/three)/.test(id)) {
+            return 'three'
+          }
         },
       },
     },

@@ -1,8 +1,8 @@
-import { localRepository } from './localRepository'
+import { indexedDbRepository } from './indexedDbRepository'
 import type { CollectionRepository } from './types'
 
 export function getRepository(): CollectionRepository {
-  return localRepository
+  return indexedDbRepository
 }
 
-export type { CollectionRepository } from './types'
+export type { CollectionRepository, CollectionSnapshot } from './types'

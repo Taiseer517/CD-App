@@ -1,16 +1,7 @@
 import { Link } from 'react-router-dom'
 import { PageTransition } from '../components/layout/PageTransition'
+import { StoragePanel } from '../components/storage/StoragePanel'
 import { useCollectionStore } from '../store/useCollectionStore'
-
-function downloadJson(filename: string, data: unknown) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = filename
-  link.click()
-  URL.revokeObjectURL(url)
-}
 
 export function AdminPage() {
   const items = useCollectionStore((state) => state.items)
@@ -26,28 +17,18 @@ export function AdminPage() {
   return (
     <PageTransition>
       <div className="space-y-6">
+        <StoragePanel />
+
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-bone-400">
-            {items.length} item{items.length === 1 ? '' : 's'} total.{' '}
-            {import.meta.env.DEV
-              ? 'Changes here write straight to collection.json on disk.'
-              : 'Changes here stay in this browser only — use "Export JSON" to save them permanently.'}
+            {items.length} item{items.length === 1 ? '' : 's'} in the archive.
           </p>
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={() => downloadJson('collection.json', items)}
-              className="rounded-md border border-velvet-700 px-4 py-2 text-sm text-bone-200 transition-colors hover:border-velvet-400"
-            >
-              Export JSON
-            </button>
-            <Link
-              to="/admin/new"
-              className="rounded-md border border-blood-700 bg-blood-900/60 px-4 py-2 text-sm text-bone-100 transition-colors hover:border-blood-400"
-            >
-              + Add item
-            </Link>
-          </div>
+          <Link
+            to="/admin/new"
+            className="rounded-md border border-blood-700 bg-blood-900/60 px-4 py-2 text-sm text-bone-100 transition-colors hover:border-blood-400"
+          >
+            + Add item
+          </Link>
         </div>
 
         <div className="overflow-x-auto rounded-lg border border-void-700">
