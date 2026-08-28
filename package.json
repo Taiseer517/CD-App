@@ -25,6 +25,9 @@
     "zod": "^4.4.3",
     "zustand": "^5.0.15"
   },
+  "overrides": {
+    "three": "$three"
+  },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.3",

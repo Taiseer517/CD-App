@@ -34,7 +34,7 @@ export const useUiStore = create<UiState>()(
     (set) => ({
       searchQuery: '',
       filters: emptyFilters,
-      viewMode: 'simple',
+      viewMode: '3d',
       cinematicEffects: false,
 
       setSearchQuery: (searchQuery) => set({ searchQuery }),

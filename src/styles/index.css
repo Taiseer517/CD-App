@@ -1,11 +1,8 @@
 @import "tailwindcss";
 
-@import "@fontsource/cinzel/400.css";
-@import "@fontsource/cinzel/600.css";
-@import "@fontsource/eb-garamond/400.css";
-@import "@fontsource/eb-garamond/500.css";
-@import "@fontsource/eb-garamond/400-italic.css";
-@import "@fontsource/unifrakturmaguntia/400.css";
+/* Fonts are imported from main.tsx as separate modules (latin subsets only),
+   so they stay out of this file's CSS pipeline — otherwise every style edit
+   reprocesses ~40 font-face declarations along with Tailwind. */
 
 @theme {
   /* Backgrounds — near-black, never pure black or pure white */
