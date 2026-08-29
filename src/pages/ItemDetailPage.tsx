@@ -120,8 +120,10 @@ export function ItemDetailPage() {
                   <img
                     src={safeImageUrl(facing)}
                     alt={`${item.title} ${showBack ? 'back cover' : 'cover art'}`}
-                    crossOrigin="anonymous"
                     className="h-full w-full object-cover"
+                    onError={(event) => {
+                      event.currentTarget.style.visibility = 'hidden'
+                    }}
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center">
@@ -155,8 +157,10 @@ export function ItemDetailPage() {
                     <img
                       src={safeImageUrl(item.discImageUrl)}
                       alt=""
-                      crossOrigin="anonymous"
                       className="h-12 w-12 shrink-0 rounded-full object-cover transition-transform duration-700 group-hover:rotate-45"
+                      onError={(event) => {
+                        event.currentTarget.style.visibility = 'hidden'
+                      }}
                     />
                   ) : (
                     <span

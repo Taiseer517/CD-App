@@ -125,8 +125,10 @@ function Cover({
             src={cover}
             alt=""
             loading="lazy"
-            crossOrigin="anonymous"
             className="h-full w-full object-cover brightness-[0.86] transition-[filter] duration-300 group-hover:brightness-105"
+            onError={(event) => {
+              event.currentTarget.style.visibility = 'hidden'
+            }}
           />
         ) : (
           <span className="flex h-full w-full flex-col items-center justify-center gap-1 bg-gradient-to-br from-velvet-900 to-void-950 p-2 text-center">

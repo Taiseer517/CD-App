@@ -36,8 +36,10 @@ export function CollectionCard({ item, dimmed = false }: CollectionCardProps) {
               src={safeImageUrl(item.coverImageUrl)}
               alt={`${item.title} cover art`}
               loading="lazy"
-              crossOrigin="anonymous"
               className="h-full w-full object-cover"
+              onError={(event) => {
+                event.currentTarget.style.visibility = 'hidden'
+              }}
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center">

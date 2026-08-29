@@ -125,8 +125,10 @@ export function ShelfAlcove({
                       src={safeImageUrl(item.coverImageUrl)}
                       alt=""
                       loading="lazy"
-                      crossOrigin="anonymous"
                       className="h-full w-full object-cover brightness-[0.82] transition-[filter,transform] duration-700 group-hover:scale-[1.04] group-hover:brightness-105"
+                      onError={(event) => {
+                        event.currentTarget.style.visibility = 'hidden'
+                      }}
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-velvet-900 to-void-950">

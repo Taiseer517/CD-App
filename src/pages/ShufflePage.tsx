@@ -115,8 +115,10 @@ export function ShufflePage() {
                   <img
                     src={safeImageUrl(pick.coverImageUrl)}
                     alt=""
-                    crossOrigin="anonymous"
                     className="h-full w-full object-cover"
+                    onError={(event) => {
+                      event.currentTarget.style.visibility = 'hidden'
+                    }}
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-velvet-900 to-void-950">
