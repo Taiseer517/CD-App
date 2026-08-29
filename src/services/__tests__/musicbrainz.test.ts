@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatToMediaType, mapReleaseToPatch } from '../musicbrainz'
+import { formatToMediaType, mapReleaseToPatch, plainAnnotation } from '../musicbrainz'
 
 // Trimmed from the real response for the US 1993 pressing of Bloody Kisses.
 const bloodyKisses = {
@@ -97,9 +97,28 @@ describe('mapReleaseToPatch', () => {
   it('never overwrites the fields that are hers to write', () => {
     const patch = mapReleaseToPatch(bloodyKisses)
 
-    for (const field of ['rating', 'notes', 'conditionOrEdition', 'tags', 'wishlist', 'dateAcquired']) {
+    // tags is deliberately absent from this list: it is sourced now, from
+    // MusicBrainz's own genres and tags, rather than being a field only she
+    // could fill. A rating or a note still has no source and never will.
+    for (const field of ['rating', 'notes', 'conditionOrEdition', 'wishlist', 'dateAcquired']) {
       expect(patch).not.toHaveProperty(field)
     }
+  })
+
+  it('carries every descriptor the release is tagged with, not just the top one', () => {
+    const patch = mapReleaseToPatch(bloodyKisses)
+
+    // The single top genre still drives the genre field; the rest would
+    // otherwise be fetched and thrown away.
+    expect(patch.genre).toBe('Gothic Metal')
+    expect(patch.tags).toContain('Doom Metal')
+  })
+
+  it('takes an annotation when there is one, and leaves it absent when there is not', () => {
+    expect(mapReleaseToPatch(bloodyKisses)).not.toHaveProperty('funFact')
+
+    const annotated = { ...bloodyKisses, annotation: '  Pressed on green vinyl.  ' }
+    expect(mapReleaseToPatch(annotated).funFact).toBe('Pressed on green vinyl.')
   })
 
   it('handles a collaboration credit with its join phrase', () => {
@@ -130,5 +149,32 @@ describe('formatToMediaType', () => {
   it('returns null for a format it cannot place, leaving the choice alone', () => {
     expect(formatToMediaType('Cassette')).toBeNull()
     expect(formatToMediaType('')).toBeNull()
+  })
+})
+
+describe('plainAnnotation', () => {
+  it('strips the wiki markup an annotation arrives wrapped in', () => {
+    const raw = "'''Recorded''' at [http://www.studiofredman.com/|Studio Fredman], Sweden."
+    expect(plainAnnotation(raw)).toBe('Recorded at Studio Fredman, Sweden.')
+  })
+
+  it('drops a bare link, which reads as nothing once the markup is gone', () => {
+    expect(plainAnnotation('See [http://example.com/] for more.')).toBe('See for more.')
+  })
+
+  it('cuts an over-long note at a sentence rather than mid-word', () => {
+    const long = 'This is a sentence about the pressing. '.repeat(30)
+    const short = plainAnnotation(long)
+
+    expect(short.length).toBeLessThan(470)
+    expect(short.endsWith(' […]')).toBe(true)
+    // Cut at a full stop, so the last thing read is a whole thought.
+    expect(short.replace(' […]', '').endsWith('.')).toBe(true)
+  })
+
+  it('leaves a note that is already plain exactly as it is', () => {
+    expect(plainAnnotation('Limited to 300 copies on brown vinyl.')).toBe(
+      'Limited to 300 copies on brown vinyl.',
+    )
   })
 })

@@ -131,7 +131,7 @@ collection is not undone on reload.
 MusicBrainz release search resolving the specific pressing, and Cover Art
 Archive for front, back and disc scans. Dominant colour sampled per sleeve.
 All eight music records backfilled with real catalogue numbers, barcodes,
-tracklists and artwork by `scripts/enrich-collection.mjs`.
+tracklists, artwork and annotations by `scripts/build-collection.mjs`.
 
 ### Phase 4 — The shelf, properly · done
 Named shelves with drag-to-rearrange, persisted. Per-medium behaviour: the

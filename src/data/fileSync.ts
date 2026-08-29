@@ -151,6 +151,7 @@ export function parseArchive(text: string): ArchiveFile {
   for (const entry of shape.shelves) {
     const parsed = ShelfSchema.safeParse(entry)
     if (parsed.success) shelves.push(parsed.data)
+    else console.warn('Skipping an unreadable shelf during import', parsed.error.flatten())
   }
 
   return { version: 1, exportedAt: shape.exportedAt, items, shelves }

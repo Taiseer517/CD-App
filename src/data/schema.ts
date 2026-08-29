@@ -62,6 +62,12 @@ export const CollectionItemSchema = z.object({
   sourceName: z.string().default(''),
   sourceUrl: z.string().default(''),
 
+  // Whatever the source has to say about this record beyond its bare facts —
+  // MusicBrainz's annotation, where an editor has written one. Very often
+  // empty, and empty is the honest answer: nothing here is ever composed to
+  // fill the space.
+  funFact: z.string().default(''),
+
   // --- Film-specific, from TMDB. Empty for music, and never rendered empty.
   synopsis: z.string().default(''),
   cast: z.array(z.string()).default([]),

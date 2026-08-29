@@ -20,7 +20,13 @@ export interface CollectionRepository {
   /** Persists a reordering in one transaction rather than one write per case. */
   savePlacements(placements: { id: string; shelfId: string | null; position: number }[]): Promise<void>
 
+  /** The same, for the order the shelves themselves hang in on the wall. */
+  saveShelfOrder(orders: { id: string; order: number }[]): Promise<void>
+
   /** Wholesale replace, used by Import and by loading a synced file. */
   replaceAll(snapshot: CollectionSnapshot): Promise<void>
+
+  /** Discards everything and lays out the bundled collection again. */
+  resetToStarter(): Promise<CollectionSnapshot>
   snapshot(): Promise<CollectionSnapshot>
 }

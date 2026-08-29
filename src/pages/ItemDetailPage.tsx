@@ -1,5 +1,6 @@
 import { lazy, Suspense, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { archiveAudio } from '../audio/archiveAudio'
 import { EmptyState } from '../components/common/EmptyState'
 import { Rating } from '../components/common/Rating'
 import { TagList } from '../components/common/TagList'
@@ -82,6 +83,7 @@ export function ItemDetailPage() {
   async function handleDelete() {
     if (!window.confirm(`Remove "${item!.title}" from the collection?`)) return
     await deleteItem(item!.id)
+    archiveAudio.discard()
     navigate(item!.wishlist ? '/wishlist' : '/')
   }
 
@@ -133,7 +135,10 @@ export function ItemDetailPage() {
               {item.backCoverImageUrl && (
                 <button
                   type="button"
-                  onClick={() => setShowBack((current) => !current)}
+                  onClick={() => {
+                    archiveAudio.flip()
+                    setShowBack((current) => !current)
+                  }}
                   className="w-full rounded-md border border-void-700 px-3 py-2 text-sm text-bone-300 transition-colors hover:border-velvet-400 hover:text-bone-100"
                 >
                   {showBack ? 'Show the front' : 'Turn it over'}
@@ -227,6 +232,17 @@ export function ItemDetailPage() {
                     <span className="text-xs uppercase tracking-wide">Cast </span>
                     <span className="text-bone-200">{item.cast.join(', ')}</span>
                   </p>
+                )}
+
+                {item.funFact && (
+                  <div className="mt-4 border-l-2 border-velvet-700 pl-3">
+                    <p className="text-[0.62rem] uppercase tracking-[0.18em] text-velvet-300">
+                      Worth knowing
+                    </p>
+                    <p className="mt-1 max-w-prose whitespace-pre-line text-sm leading-relaxed text-bone-300">
+                      {item.funFact}
+                    </p>
+                  </div>
                 )}
 
                 <TagList tags={item.tags} />

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { PageTransition } from '../components/layout/PageTransition'
 import { ArchClip } from '../components/wall/ArchClip'
 import { ShelfAlcove } from '../components/wall/ShelfAlcove'
@@ -13,8 +13,13 @@ export function WallPage() {
   const items = useCollectionStore((state) => state.items)
   const shelves = useCollectionStore((state) => state.shelves)
   const addShelf = useCollectionStore((state) => state.addShelf)
+  const renameShelf = useCollectionStore((state) => state.renameShelf)
+  const deleteShelf = useCollectionStore((state) => state.deleteShelf)
+  const reorderShelves = useCollectionStore((state) => state.reorderShelves)
   const [newName, setNewName] = useState('')
   const [newKind, setNewKind] = useState<'music' | 'film'>('music')
+  const [editMode, setEditMode] = useState(false)
+  const dragFrom = useRef<string | null>(null)
   const themeId = useUiStore((state) => state.theme)
   const theme = themeById(themeId)
   const setTheme = useUiStore((state) => state.setTheme)
@@ -37,7 +42,16 @@ export function WallPage() {
     return byShelf
   }, [owned, shelves])
 
-  const unfiled = grouped.get(null) ?? []
+  // Unfiled used to appear under music only, so an unshelved film was on the
+  // wall nowhere at all — present in the archive, reachable by its own URL,
+  // and invisible where you would look for it. Each kind now gathers its own.
+  const unfiledByKind = useMemo(() => {
+    const unfiled = grouped.get(null) ?? []
+    return {
+      music: unfiled.filter((item) => item.type !== 'dvd'),
+      film: unfiled.filter((item) => item.type === 'dvd'),
+    }
+  }, [grouped])
 
   async function handleCreate(event: React.FormEvent, kind: 'music' | 'film' = 'music') {
     event.preventDefault()
@@ -45,6 +59,16 @@ export function WallPage() {
     if (!name) return
     await addShelf({ name, order: shelves.length, accent: '', kind })
     setNewName('')
+  }
+
+  /** Reorders within one kind's run; the other kind keeps the order it had. */
+  async function moveShelf(ordered: string[], fromId: string, toId: string) {
+    const from = ordered.indexOf(fromId)
+    const to = ordered.indexOf(toId)
+    if (from === -1 || to === -1 || from === to) return
+    const next = [...ordered]
+    next.splice(to, 0, ...next.splice(from, 1))
+    await reorderShelves(next)
   }
 
   return (
@@ -61,6 +85,28 @@ export function WallPage() {
           <p className="mx-auto mt-2 max-w-md text-sm text-bone-400">
             Every shelf in the archive. Step into one to handle what is on it.
           </p>
+
+          {shelves.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setEditMode((current) => !current)}
+              aria-pressed={editMode}
+              className={`mt-4 rounded-md border px-4 py-1.5 text-xs uppercase tracking-[0.16em] transition-colors ${
+                editMode
+                  ? 'border-velvet-400 bg-velvet-900/40 text-bone-100'
+                  : 'border-void-700 text-bone-400 hover:border-velvet-700 hover:text-bone-200'
+              }`}
+            >
+              {editMode ? 'Done arranging' : 'Rearrange shelves'}
+            </button>
+          )}
+
+          {editMode && (
+            <p className="mx-auto mt-2 max-w-md text-xs text-bone-400/80">
+              Drag a shelf by its handle to move it. Rename with the pencil, take it down with
+              the cross — records on a shelf you take down move to Unfiled rather than being lost.
+            </p>
+          )}
         </header>
 
         {/* Music and film are catalogued differently and are kept apart:
@@ -71,8 +117,10 @@ export function WallPage() {
           const inKind = [...shelves]
             .filter((shelf) => shelf.kind === kind)
             .sort((a, b) => a.order - b.order)
-          const showUnfiled = kind === 'music' && unfiled.length > 0
+          const kindUnfiled = unfiledByKind[kind]
+          const showUnfiled = kindUnfiled.length > 0
           if (inKind.length === 0 && !showUnfiled) return null
+          const orderedIds = inKind.map((shelf) => shelf.id)
 
           return (
             <section key={kind} className="space-y-5">
@@ -84,12 +132,24 @@ export function WallPage() {
                 {inKind.map((shelf, index) => (
                   <ShelfAlcove
                     key={shelf.id}
+                    id={shelf.id}
                     to={`/shelf/${shelf.id}`}
                     name={shelf.name}
                     count={(grouped.get(shelf.id) ?? []).length}
                     items={grouped.get(shelf.id) ?? []}
                     index={index}
                     theme={theme}
+                    editMode={editMode}
+                    onRename={renameShelf}
+                    onDelete={deleteShelf}
+                    onDragStart={() => {
+                      dragFrom.current = shelf.id
+                    }}
+                    onDrop={() => {
+                      const from = dragFrom.current
+                      dragFrom.current = null
+                      if (from) void moveShelf(orderedIds, from, shelf.id)
+                    }}
                   />
                 ))}
 
@@ -97,8 +157,8 @@ export function WallPage() {
                   <ShelfAlcove
                     to={`/shelf/${UNFILED_SLUG}`}
                     name="Unfiled"
-                    count={unfiled.length}
-                    items={unfiled}
+                    count={kindUnfiled.length}
+                    items={kindUnfiled}
                     index={inKind.length}
                     theme={theme}
                   />

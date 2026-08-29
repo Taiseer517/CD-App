@@ -37,6 +37,7 @@ interface CollectionState {
   refreshMissingArtwork: () => Promise<number>
   renameShelf: (id: string, name: string) => Promise<void>
   deleteShelf: (id: string) => Promise<void>
+  reorderShelves: (orderedIds: string[]) => Promise<void>
   savePlacements: (placements: { id: string; shelfId: string | null; position: number }[]) => Promise<void>
   moveItemToShelf: (id: string, shelfId: string | null) => Promise<void>
 
@@ -45,6 +46,8 @@ interface CollectionState {
   disconnectFile: () => Promise<void>
   exportArchive: () => void
   importArchive: (file: File) => Promise<number>
+  /** Destructive: discards everything for the bundled collection. */
+  resetToStarter: () => Promise<number>
 }
 
 const AUTOSAVE_DELAY_MS = 800
@@ -155,6 +158,27 @@ export const useCollectionStore = create<CollectionState>((set, get) => {
       scheduleSync()
     },
 
+    /**
+     * Hangs the shelves in a new order.
+     *
+     * Called with one kind's shelves at a time — music and film are laid out
+     * as separate runs on the wall, and each is only ever sorted against its
+     * own. A shelf not named here keeps the order it had.
+     */
+    async reorderShelves(orderedIds) {
+      if (orderedIds.length === 0) return
+      await getRepository().saveShelfOrder(orderedIds.map((id, order) => ({ id, order })))
+      set((state) => ({
+        shelves: state.shelves
+          .map((shelf) => {
+            const order = orderedIds.indexOf(shelf.id)
+            return order === -1 ? shelf : { ...shelf, order }
+          })
+          .sort((a, b) => a.order - b.order),
+      }))
+      scheduleSync()
+    },
+
     async savePlacements(placements) {
       if (placements.length === 0) return
       await getRepository().savePlacements(placements)
@@ -208,25 +232,11 @@ export const useCollectionStore = create<CollectionState>((set, get) => {
       if (!item.musicbrainzId && !item.tmdbId) return 'no-source'
 
       try {
-        const [{ getRelease }, { fetchArtwork }, { getFilm }] = await Promise.all([
-          import('../services/musicbrainz'),
-          import('../services/coverArt'),
-          import('../services/tmdb'),
-        ])
+        const { enrichFilm, enrichRelease } = await import('../services/enrichment')
 
         const patch = item.tmdbId
-          ? await getFilm(Number(item.tmdbId))
-          : await getRelease(item.musicbrainzId)
-
-        if (item.musicbrainzId) {
-          const artwork = await fetchArtwork(item.musicbrainzId)
-          if (artwork.front) {
-            patch.coverImageUrl = artwork.front
-            patch.backgroundImageUrl = artwork.back || artwork.front
-          }
-          if (artwork.back) patch.backCoverImageUrl = artwork.back
-          if (artwork.disc) patch.discImageUrl = artwork.disc
-        }
+          ? await enrichFilm(Number(item.tmdbId))
+          : await enrichRelease(item.musicbrainzId)
 
         // Never touches rating, notes, condition or date acquired: those are
         // hers, and a refresh must not overwrite them.
@@ -282,6 +292,13 @@ export const useCollectionStore = create<CollectionState>((set, get) => {
       set({ items: archive.items, shelves: archive.shelves })
       scheduleSync()
       return archive.items.length
+    },
+
+    async resetToStarter() {
+      const { items, shelves } = await getRepository().resetToStarter()
+      set({ items, shelves })
+      scheduleSync()
+      return items.length
     },
   }
 })

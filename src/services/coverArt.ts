@@ -52,12 +52,23 @@ export async function fetchArtwork(mbid: string): Promise<Artwork> {
   const back = images.find((image) => image.back) ?? images.find((i) => i.types?.includes('Back'))
   const disc = images.find((image) => image.types?.includes('Medium'))
 
-  // Some releases have scans but none tagged Front. Falling back to the first
-  // image that is not the back or the disc beats showing no sleeve at all.
+  // Some releases have scans but none tagged Front. Anything that is not the
+  // sleeve is worse than nothing here — a photograph of the disc standing in
+  // for the cover is how Serpent's Embrace ended up shelved as a picture of a
+  // CD. Excluding by *type* matters: excluding only the one disc that was
+  // matched above lets a second scan of the same disc through.
+  const unusable = (image: RawImage) =>
+    Boolean(
+      image.back ||
+        image.types?.some((type) => type === 'Back' || type === 'Spine' || type === 'Medium'),
+    )
+
   const front =
     images.find((image) => image.front) ??
     images.find((image) => image.types?.includes('Front')) ??
-    images.find((image) => image !== back && image !== disc)
+    // A booklet's first page is normally the cover art again.
+    images.find((image) => image.types?.includes('Booklet')) ??
+    images.find((image) => !unusable(image))
 
   return {
     front: front ? pickThumbnail(front, '500') : '',

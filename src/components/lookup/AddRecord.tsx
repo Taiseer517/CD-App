@@ -3,16 +3,15 @@ import { Link } from 'react-router-dom'
 import { archiveAudio } from '../../audio/archiveAudio'
 import { findDuplicate, type DuplicateMatch } from '../../data/duplicates'
 import { emptyCollectionItemInput, type CollectionItemInput } from '../../data/schema'
-import { fetchArtwork, frontCoverUrl } from '../../services/coverArt'
-import { extractDominantColor } from '../../services/dominantColor'
+import { frontCoverUrl } from '../../services/coverArt'
+import { enrichFilm, enrichRelease } from '../../services/enrichment'
 import {
-  getRelease,
   searchAlbums,
   searchByBarcode,
   ServiceBusyError,
   type ReleaseSummary,
 } from '../../services/musicbrainz'
-import { getFilm, isTmdbConfigured, searchFilms, type FilmSummary } from '../../services/tmdb'
+import { isTmdbConfigured, searchFilms, type FilmSummary } from '../../services/tmdb'
 import { useCollectionStore } from '../../store/useCollectionStore'
 import { BarcodeScanner, detectorSupported } from './BarcodeScanner'
 
@@ -198,17 +197,7 @@ export function AddRecord({ destination, onAdd }: AddRecordProps) {
 
     try {
       const patch =
-        hit.kind === 'film' ? await getFilm(hit.film.id) : await getRelease(hit.release.id)
-
-      if (hit.kind === 'release') {
-        const artwork = await fetchArtwork(hit.release.id)
-        if (artwork.front) {
-          patch.coverImageUrl = artwork.front
-          patch.backgroundImageUrl = artwork.back || artwork.front
-        }
-        if (artwork.back) patch.backCoverImageUrl = artwork.back
-        if (artwork.disc) patch.discImageUrl = artwork.disc
-      }
+        hit.kind === 'film' ? await enrichFilm(hit.film.id) : await enrichRelease(hit.release.id)
 
       setPreview(patch)
       setDuplicate(
@@ -235,13 +224,9 @@ export function AddRecord({ destination, onAdd }: AddRecordProps) {
     if (!preview) return
     setAdding(true)
     try {
-      const patch = { ...preview }
-      if (patch.coverImageUrl) {
-        const colour = await extractDominantColor(patch.coverImageUrl)
-        if (colour) patch.dominantColor = colour
-      }
-      await onAdd({ ...emptyCollectionItemInput(), ...patch })
-      setAdded(patch.title ?? 'It')
+      await onAdd({ ...emptyCollectionItemInput(), ...preview })
+      archiveAudio.saved()
+      setAdded(preview.title ?? 'It')
       reset()
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -457,6 +442,25 @@ export function AddRecord({ destination, onAdd }: AddRecordProps) {
                     </div>
                   ))}
               </dl>
+
+              {preview.tags && preview.tags.length > 0 && (
+                <ul className="flex flex-wrap gap-1">
+                  {preview.tags.slice(0, 6).map((tag) => (
+                    <li
+                      key={tag}
+                      className="rounded-full border border-void-700 px-2 py-0.5 text-[0.65rem] text-bone-400"
+                    >
+                      {tag}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {preview.funFact && (
+                <p className="border-l-2 border-velvet-700 pl-2 text-xs leading-relaxed text-bone-300">
+                  {preview.funFact}
+                </p>
+              )}
 
               {duplicate && (
                 <p className="rounded border border-blood-700 bg-blood-900/20 p-2 text-xs text-bone-200">

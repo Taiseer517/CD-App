@@ -20,7 +20,7 @@ describe('indexedDbRepository', () => {
   it('seeds the starter collection on first read', async () => {
     const items = await indexedDbRepository.getAll()
     expect(items.length).toBeGreaterThan(0)
-    expect(items.some((item) => item.title === 'Bloody Kisses')).toBe(true)
+    expect(items.some((item) => item.title === 'Blackwater Park')).toBe(true)
   })
 
   it('does not re-seed after the collection is emptied', async () => {
@@ -124,6 +124,63 @@ describe('indexedDbRepository', () => {
     expect(items.some((item) => item.id === 'rubbish')).toBe(false)
     // The rest of the collection still comes back.
     expect(items).toHaveLength(before.length)
+  })
+
+  it('brings a shelf saved before kind existed back onto the wall', async () => {
+    await indexedDbRepository.getAll()
+
+    // Exactly what an existing browser holds: a shelf written before the wall
+    // learned to tell music from film. Returned raw it matched neither, so the
+    // shelf vanished from the wall and took its records with it — filed to
+    // something invisible, so not gathered into Unfiled either.
+    const { writeOne } = await import('../idb')
+    await writeOne('shelves', { id: 'legacy-shelf', name: 'Before The Split', order: 9 })
+
+    const shelves = await indexedDbRepository.getShelves()
+    const found = shelves.find((shelf) => shelf.id === 'legacy-shelf')
+
+    expect(found).toBeDefined()
+    expect(found?.kind).toBe('music')
+  })
+
+  it('skips a shelf too broken to repair rather than failing the whole read', async () => {
+    const before = await indexedDbRepository.getShelves()
+    const { writeOne } = await import('../idb')
+    // No name: nothing the schema can default its way out of.
+    await writeOne('shelves', { id: 'rubbish-shelf', order: 2 })
+
+    const shelves = await indexedDbRepository.getShelves()
+
+    expect(shelves.some((shelf) => shelf.id === 'rubbish-shelf')).toBe(false)
+    expect(shelves).toHaveLength(before.length)
+  })
+
+  it('hangs the shelves in a new order without disturbing the rest', async () => {
+    await indexedDbRepository.getAll()
+    const [first, second] = await indexedDbRepository.getShelves()
+
+    await indexedDbRepository.saveShelfOrder([
+      { id: second.id, order: 0 },
+      { id: first.id, order: 1 },
+    ])
+
+    const after = await indexedDbRepository.getShelves()
+    expect(after[0].id).toBe(second.id)
+    expect(after[1].id).toBe(first.id)
+  })
+
+  it('lays the curated collection out again on a deliberate reset', async () => {
+    await indexedDbRepository.getAll()
+    const seeded = await indexedDbRepository.getAll()
+    for (const item of seeded) await indexedDbRepository.remove(item.id)
+    expect(await indexedDbRepository.getAll()).toHaveLength(0)
+
+    const restored = await indexedDbRepository.resetToStarter()
+
+    expect(restored.items.length).toBeGreaterThan(0)
+    expect(await indexedDbRepository.getAll()).toHaveLength(restored.items.length)
+    // Every record lands on a shelf rather than in a heap.
+    expect(restored.items.every((item) => item.shelfId !== null)).toBe(true)
   })
 
   it('replaces everything on import and reports it through snapshot', async () => {

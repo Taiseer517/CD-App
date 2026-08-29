@@ -39,10 +39,12 @@ interface RawRelease {
   date?: string
   country?: string
   barcode?: string | null
+  annotation?: string | null
   'artist-credit'?: { name?: string; joinphrase?: string }[]
   'label-info'?: RawLabelInfo[]
   media?: RawMedium[]
   genres?: { name?: string; count?: number }[]
+  tags?: { name?: string; count?: number }[]
 }
 
 function creditedArtist(release: RawRelease): string {
@@ -64,6 +66,31 @@ function mediaFormat(release: RawRelease): string {
   const format = media[0].format ?? ''
   // "2×CD" reads better on a shelf label than "CD" when there are two discs.
   return media.length > 1 ? `${media.length}×${format}` : format
+}
+
+/**
+ * Annotations are written in MusicBrainz's own wiki markup, so they arrive
+ * carrying bold markers and [http://…|link] spans and would otherwise be
+ * shown literally. The words are untouched; only the scaffolding comes off.
+ */
+export function plainAnnotation(annotation: string): string {
+  const cleaned = annotation
+    .replace(/\[(?:https?:)?[^\]|]*\|([^\]]*)\]/g, '$1')
+    .replace(/\[((?:https?:)?\/\/[^\]]*)\]/g, '')
+    .replace(/'''([^']*)'''/g, '$1')
+    .replace(/''([^']*)''/g, '$1')
+    .replace(/^\s*={2,}\s*(.*?)\s*={2,}\s*$/gm, '$1')
+    .replace(/^\s*\*\s?/gm, '· ')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+
+  // Long enough to say something, short enough to still read as a note beside
+  // a record rather than an essay. Cut at a sentence, never mid-word.
+  if (cleaned.length <= 420) return cleaned
+  const window = cleaned.slice(0, 420)
+  const stop = Math.max(window.lastIndexOf('. '), window.lastIndexOf('\n'))
+  return (stop > 160 ? window.slice(0, stop + 1) : window).trim() + ' […]'
 }
 
 /** MusicBrainz reports genres lowercase; shelves read better in title case. */
@@ -127,7 +154,9 @@ function toSummary(release: RawRelease): ReleaseSummary {
 
 /**
  * Maps a full release into the fields the form owns. Deliberately partial:
- * it never touches rating, notes, condition or tags, which are hers.
+ * it never touches rating, notes, condition or date acquired, which are hers.
+ * Tags are not among those — they come from MusicBrainz's own genres and
+ * community tags, and are a fact about the record rather than an opinion.
  */
 export function mapReleaseToPatch(release: RawRelease): Partial<CollectionItemInput> {
   const { label, catalogNumber } = firstLabel(release)
@@ -146,9 +175,20 @@ export function mapReleaseToPatch(release: RawRelease): Partial<CollectionItemIn
     }
   })
 
-  const topGenre = [...(release.genres ?? [])]
-    .sort((a, b) => (b.count ?? 0) - (a.count ?? 0))
-    .find((genre) => genre.name)
+  const ranked = [...(release.genres ?? [])].sort((a, b) => (b.count ?? 0) - (a.count ?? 0))
+  const topGenre = ranked.find((genre) => genre.name)
+
+  // Everything the community has said this record is, not just the one word
+  // that won. Genres and tags overlap heavily, so they are merged and deduped
+  // rather than listed twice.
+  const descriptors = [...ranked, ...[...(release.tags ?? [])].sort((a, b) => (b.count ?? 0) - (a.count ?? 0))]
+  const tags: string[] = []
+  for (const entry of descriptors) {
+    const name = entry.name?.trim()
+    if (!name) continue
+    const cased = titleCase(name)
+    if (!tags.some((existing) => existing.toLowerCase() === cased.toLowerCase())) tags.push(cased)
+  }
 
   const patch: Partial<CollectionItemInput> = {
     title: release.title ?? '',
@@ -164,10 +204,15 @@ export function mapReleaseToPatch(release: RawRelease): Partial<CollectionItemIn
     sourceUrl: `https://musicbrainz.org/release/${release.id}`,
   }
 
-  // Only overwrite year and genre when the lookup actually knows them, so a
-  // sparse release can't blank out something already filled in by hand.
+  // Only overwrite these when the lookup actually knows them, so a sparse
+  // release can't blank out something already filled in by hand.
   if (Number.isFinite(year)) patch.year = year
   if (topGenre?.name) patch.genre = titleCase(topGenre.name)
+  if (tags.length > 0) patch.tags = tags.slice(0, 12)
+  // An annotation is free text an editor wrote about this pressing — the
+  // pressing history, what makes it unusual. Most releases have none.
+  const annotation = plainAnnotation(release.annotation?.trim() ?? '')
+  if (annotation) patch.funFact = annotation
   const type = formatToMediaType(format)
   if (type) patch.type = type
 
@@ -255,6 +300,6 @@ export async function searchByBarcode(barcode: string): Promise<ReleaseSummary[]
 }
 
 export async function getRelease(mbid: string): Promise<Partial<CollectionItemInput>> {
-  const url = `${API}/release/${mbid}?inc=artist-credits+labels+recordings+genres&fmt=json`
+  const url = `${API}/release/${mbid}?inc=artist-credits+labels+recordings+genres+tags+annotation&fmt=json`
   return mapReleaseToPatch(await request<RawRelease>(url))
 }

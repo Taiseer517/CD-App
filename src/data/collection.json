@@ -1,848 +1,1149 @@
 [
   {
-    "id": "8f14e45f-ceea-4d1c-9a83-000000000001",
-    "title": "Cruelty and the Beast",
-    "type": "cd",
-    "artistOrDirector": "Cradle of Filth",
-    "year": 1998,
-    "label": "Mayhem",
+    "id": "agathodaimon-serpent-s-embrace",
+    "type": "vinyl",
+    "title": "Serpent’s Embrace",
+    "artistOrDirector": "Agathodaimon",
+    "year": 2004,
+    "label": "Nuclear Blast",
     "genre": "Black Metal",
-    "format": "2×CD",
-    "coverImageUrl": "https://coverartarchive.org/release/33a0a4cf-2e8c-3dbe-8c44-25babf577d8e/2932861270-500.jpg",
-    "backgroundImageUrl": "https://coverartarchive.org/release/33a0a4cf-2e8c-3dbe-8c44-25babf577d8e/2932871899-500.jpg",
+    "format": "2×Enhanced CD",
+    "coverImageUrl": "https://coverartarchive.org/release/2fbf3213-42bc-4a2d-903e-5bc31d60a12d/44254578994-500.jpg",
+    "backgroundImageUrl": "https://coverartarchive.org/release/2fbf3213-42bc-4a2d-903e-5bc31d60a12d/44254579432-500.jpg",
+    "backCoverImageUrl": "https://coverartarchive.org/release/2fbf3213-42bc-4a2d-903e-5bc31d60a12d/44254579432-500.jpg",
+    "discImageUrl": "https://coverartarchive.org/release/2fbf3213-42bc-4a2d-903e-5bc31d60a12d/44254577479-500.jpg",
+    "dominantColor": "",
     "tags": [
-      "Symphonic Black Metal",
-      "Extreme Gothic Metal",
-      "Melodic Black Metal"
+      "Rock",
+      "Symphonic Black Metal"
     ],
     "rating": 0,
     "notes": "",
     "conditionOrEdition": "",
     "dateAcquired": "",
     "wishlist": false,
-    "musicbrainzId": "33a0a4cf-2e8c-3dbe-8c44-25babf577d8e",
-    "barcode": "090861112929",
-    "catalogNumber": "Mayhem 11129-2",
-    "country": "US",
+    "shelfId": null,
+    "position": 0,
+    "musicbrainzId": "2fbf3213-42bc-4a2d-903e-5bc31d60a12d",
+    "tmdbId": "",
+    "barcode": "727361125721",
+    "catalogNumber": "NB 1257-2",
+    "country": "DE",
     "trackList": [
       {
         "position": 1,
-        "title": "Once Upon Atrocity",
-        "lengthMs": 103373,
+        "title": "Cellos for the Insatiable",
+        "lengthMs": 245520,
         "disc": 1
       },
       {
         "position": 2,
-        "title": "Thirteen Autumns and a Widow",
-        "lengthMs": 434333,
+        "title": "Serpent’s Embrace",
+        "lengthMs": 257146,
         "disc": 1
       },
       {
         "position": 3,
-        "title": "Cruelty Brought Thee Orchids",
-        "lengthMs": 438760,
+        "title": "Rebirth",
+        "lengthMs": 302546,
         "disc": 1
       },
       {
         "position": 4,
-        "title": "Beneath the Howling Stars",
-        "lengthMs": 462733,
+        "title": "Light Reborn",
+        "lengthMs": 243466,
         "disc": 1
       },
       {
         "position": 5,
-        "title": "Venus in Fear",
-        "lengthMs": 140333,
+        "title": "Faded Years",
+        "lengthMs": 341746,
         "disc": 1
       },
       {
         "position": 6,
-        "title": "Desire in Violent Overture",
-        "lengthMs": 256906,
+        "title": "Solitude",
+        "lengthMs": 342320,
         "disc": 1
       },
       {
         "position": 7,
-        "title": "The Twisted Nails of Faith",
-        "lengthMs": 410733,
+        "title": "Limbs of a Stare",
+        "lengthMs": 328133,
         "disc": 1
       },
       {
         "position": 8,
-        "title": "Bathory Aria: Benighted Like Usher / A Murder of Ravens in Fugue / Eyes That Witnessed Madness",
-        "lengthMs": 662360,
+        "title": "The Darkness Inside",
+        "lengthMs": 300840,
         "disc": 1
       },
       {
         "position": 9,
-        "title": "Portrait of the Dead Countess",
-        "lengthMs": 172840,
+        "title": "Bitter End",
+        "lengthMs": 217640,
         "disc": 1
       },
       {
         "position": 10,
-        "title": "Lustmord and Wargasm (The Lick of Carnivorous Winds)",
-        "lengthMs": 450800,
+        "title": "Feelings",
+        "lengthMs": 326706,
         "disc": 1
       },
       {
         "position": 1,
-        "title": "Lustmord and Wargasm (The Relicking of Cadaverous Wounds)",
-        "lengthMs": 478853,
+        "title": "Spirit Soldier (demo version)",
+        "lengthMs": 328346,
         "disc": 2
       },
       {
         "position": 2,
-        "title": "Black Metal",
-        "lengthMs": 207413,
+        "title": "Paradise Beyond (demo version)",
+        "lengthMs": 244666,
         "disc": 2
       },
       {
         "position": 3,
-        "title": "Hallowed Be Thy Name",
-        "lengthMs": 430906,
+        "title": "Burden of Time (demo version)",
+        "lengthMs": 322106,
         "disc": 2
       },
       {
         "position": 4,
-        "title": "Sodomy and Lust",
-        "lengthMs": 287666,
+        "title": "Sacred Divinity",
+        "lengthMs": 274106,
         "disc": 2
       },
       {
         "position": 5,
-        "title": "Twisting Further Nails (The Cruci-Fiction mix)",
-        "lengthMs": 332880,
+        "title": "Banner of Blasphemy",
+        "lengthMs": 342320,
+        "disc": 2
+      },
+      {
+        "position": 6,
+        "title": "Near Dark",
+        "lengthMs": 936413,
+        "disc": 2
+      },
+      {
+        "position": 7,
+        "title": "Noaptea neființei",
+        "lengthMs": 218680,
+        "disc": 2
+      },
+      {
+        "position": 8,
+        "title": "Outro",
+        "lengthMs": 132346,
         "disc": 2
       }
     ],
-    "backCoverImageUrl": "https://coverartarchive.org/release/33a0a4cf-2e8c-3dbe-8c44-25babf577d8e/2932871899-500.jpg",
-    "discImageUrl": "https://coverartarchive.org/release/33a0a4cf-2e8c-3dbe-8c44-25babf577d8e/2932926265-500.jpg",
+    "funFact": "",
     "sourceName": "MusicBrainz",
-    "sourceUrl": "https://musicbrainz.org/release/33a0a4cf-2e8c-3dbe-8c44-25babf577d8e"
+    "sourceUrl": "https://musicbrainz.org/release/2fbf3213-42bc-4a2d-903e-5bc31d60a12d",
+    "synopsis": "",
+    "cast": [],
+    "runtimeMinutes": 0
   },
   {
-    "id": "8f14e45f-ceea-4d1c-9a83-000000000002",
-    "title": "Bloody Kisses",
-    "type": "cd",
-    "artistOrDirector": "Type O Negative",
-    "year": 1993,
+    "id": "anathema-alternative-4",
+    "type": "vinyl",
+    "title": "Alternative 4",
+    "artistOrDirector": "Anathema",
+    "year": 2012,
+    "label": "Peaceville",
+    "genre": "Alternative Rock",
+    "format": "12\" Vinyl",
+    "coverImageUrl": "https://coverartarchive.org/release/cfd3bf05-05aa-4d02-ab53-b09d7f339011/13371790185.jpg",
+    "backgroundImageUrl": "https://coverartarchive.org/release/cfd3bf05-05aa-4d02-ab53-b09d7f339011/13371794590.jpg",
+    "backCoverImageUrl": "https://coverartarchive.org/release/cfd3bf05-05aa-4d02-ab53-b09d7f339011/13371794590.jpg",
+    "discImageUrl": "https://coverartarchive.org/release/cfd3bf05-05aa-4d02-ab53-b09d7f339011/13371792546.jpg",
+    "dominantColor": "",
+    "tags": [
+      "Gothic Metal",
+      "Rock",
+      "Doom Metal",
+      "90s"
+    ],
+    "rating": 0,
+    "notes": "",
+    "conditionOrEdition": "",
+    "dateAcquired": "",
+    "wishlist": false,
+    "shelfId": null,
+    "position": 0,
+    "musicbrainzId": "cfd3bf05-05aa-4d02-ab53-b09d7f339011",
+    "tmdbId": "",
+    "barcode": "801056741417",
+    "catalogNumber": "VILELP414",
+    "country": "GB",
+    "trackList": [
+      {
+        "position": 1,
+        "title": "Shroud of False",
+        "lengthMs": 96746,
+        "disc": 1
+      },
+      {
+        "position": 2,
+        "title": "Fragile Dreams",
+        "lengthMs": 332066,
+        "disc": 1
+      },
+      {
+        "position": 3,
+        "title": "Empty",
+        "lengthMs": 180666,
+        "disc": 1
+      },
+      {
+        "position": 4,
+        "title": "Lost Control",
+        "lengthMs": 349826,
+        "disc": 1
+      },
+      {
+        "position": 5,
+        "title": "Re-Connect",
+        "lengthMs": 232333,
+        "disc": 1
+      },
+      {
+        "position": 6,
+        "title": "Inner Silence",
+        "lengthMs": 188200,
+        "disc": 1
+      },
+      {
+        "position": 7,
+        "title": "Alternative 4",
+        "lengthMs": 377920,
+        "disc": 1
+      },
+      {
+        "position": 8,
+        "title": "Regret",
+        "lengthMs": 477973,
+        "disc": 1
+      },
+      {
+        "position": 9,
+        "title": "Feel",
+        "lengthMs": 328360,
+        "disc": 1
+      },
+      {
+        "position": 10,
+        "title": "Destiny",
+        "lengthMs": 135333,
+        "disc": 1
+      }
+    ],
+    "funFact": "remastered reissue on 180g vinyl",
+    "sourceName": "MusicBrainz",
+    "sourceUrl": "https://musicbrainz.org/release/cfd3bf05-05aa-4d02-ab53-b09d7f339011",
+    "synopsis": "",
+    "cast": [],
+    "runtimeMinutes": 0
+  },
+  {
+    "id": "deafheaven-lonely-people-with-power",
+    "type": "vinyl",
+    "title": "Lonely People With Power",
+    "artistOrDirector": "Deafheaven",
+    "year": 2025,
     "label": "Roadrunner Records",
-    "genre": "Gothic Metal",
-    "format": "CD",
-    "coverImageUrl": "https://coverartarchive.org/release/a98c1d5d-263d-43e6-8926-7d06def614ba/8508493025.jpg",
-    "backgroundImageUrl": "https://coverartarchive.org/release/a98c1d5d-263d-43e6-8926-7d06def614ba/8508494369.jpg",
+    "genre": "Black Metal",
+    "format": "2×12\" Vinyl",
+    "coverImageUrl": "https://coverartarchive.org/release/3afed2fd-e7c2-43b5-927e-4349fbce9137/43284444829-500.jpg",
+    "backgroundImageUrl": "https://coverartarchive.org/release/3afed2fd-e7c2-43b5-927e-4349fbce9137/43284444829-500.jpg",
+    "backCoverImageUrl": "",
+    "discImageUrl": "",
+    "dominantColor": "",
+    "tags": [
+      "Blackgaze",
+      "Post-Metal",
+      "Metal",
+      "Post-Rock",
+      "Screamo"
+    ],
+    "rating": 0,
+    "notes": "",
+    "conditionOrEdition": "",
+    "dateAcquired": "",
+    "wishlist": false,
+    "shelfId": null,
+    "position": 0,
+    "musicbrainzId": "3afed2fd-e7c2-43b5-927e-4349fbce9137",
+    "tmdbId": "",
+    "barcode": "075678601255",
+    "catalogNumber": "075678601255",
+    "country": "CA",
+    "trackList": [
+      {
+        "position": 1,
+        "title": "Incidental I",
+        "lengthMs": 56000,
+        "disc": 1
+      },
+      {
+        "position": 2,
+        "title": "Doberman",
+        "lengthMs": 394000,
+        "disc": 1
+      },
+      {
+        "position": 3,
+        "title": "Magnolia",
+        "lengthMs": 254000,
+        "disc": 1
+      },
+      {
+        "position": 4,
+        "title": "The Garden Route",
+        "lengthMs": 348000,
+        "disc": 1
+      },
+      {
+        "position": 5,
+        "title": "Heathen",
+        "lengthMs": 302000,
+        "disc": 1
+      },
+      {
+        "position": 6,
+        "title": "Amethyst",
+        "lengthMs": 494000,
+        "disc": 1
+      },
+      {
+        "position": 1,
+        "title": "Incidental II",
+        "lengthMs": 260000,
+        "disc": 2
+      },
+      {
+        "position": 2,
+        "title": "Revelator",
+        "lengthMs": 384000,
+        "disc": 2
+      },
+      {
+        "position": 3,
+        "title": "Body Behavior",
+        "lengthMs": 323000,
+        "disc": 2
+      },
+      {
+        "position": 4,
+        "title": "Incidental III",
+        "lengthMs": 128000,
+        "disc": 2
+      },
+      {
+        "position": 5,
+        "title": "Winona",
+        "lengthMs": 448000,
+        "disc": 2
+      },
+      {
+        "position": 6,
+        "title": "The Marvelous Orange Tree",
+        "lengthMs": 337000,
+        "disc": 2
+      }
+    ],
+    "funFact": "",
+    "sourceName": "MusicBrainz",
+    "sourceUrl": "https://musicbrainz.org/release/3afed2fd-e7c2-43b5-927e-4349fbce9137",
+    "synopsis": "",
+    "cast": [],
+    "runtimeMinutes": 0
+  },
+  {
+    "id": "him-and-love-said-no",
+    "type": "vinyl",
+    "title": "And Love Said No... 1997–2004",
+    "artistOrDirector": "HIM",
+    "year": 2004,
+    "label": "RCA",
+    "genre": "Metal",
+    "format": "2×CD",
+    "coverImageUrl": "https://coverartarchive.org/release/0ac577b8-4196-477a-8f05-3981b509e723/8852063402-500.jpg",
+    "backgroundImageUrl": "https://coverartarchive.org/release/0ac577b8-4196-477a-8f05-3981b509e723/41987405555-500.jpg",
+    "backCoverImageUrl": "https://coverartarchive.org/release/0ac577b8-4196-477a-8f05-3981b509e723/41987405555-500.jpg",
+    "discImageUrl": "",
+    "dominantColor": "",
+    "tags": [
+      "Alternative Pop/Rock",
+      "Hard Rock",
+      "Heavy Metal",
+      "Pop",
+      "Rock",
+      "Alternative/Indie Rock"
+    ],
+    "rating": 0,
+    "notes": "",
+    "conditionOrEdition": "",
+    "dateAcquired": "",
+    "wishlist": false,
+    "shelfId": null,
+    "position": 0,
+    "musicbrainzId": "0ac577b8-4196-477a-8f05-3981b509e723",
+    "tmdbId": "",
+    "barcode": "828766060621",
+    "catalogNumber": "82876606062",
+    "country": "GB",
+    "trackList": [
+      {
+        "position": 1,
+        "title": "And Love Said No",
+        "lengthMs": 250800,
+        "disc": 1
+      },
+      {
+        "position": 2,
+        "title": "Join Me (Razorblade remix)",
+        "lengthMs": 216853,
+        "disc": 1
+      },
+      {
+        "position": 3,
+        "title": "Buried Alive by Love",
+        "lengthMs": 300826,
+        "disc": 1
+      },
+      {
+        "position": 4,
+        "title": "Heartache Every Moment",
+        "lengthMs": 236293,
+        "disc": 1
+      },
+      {
+        "position": 5,
+        "title": "Solitary Man",
+        "lengthMs": 216893,
+        "disc": 1
+      },
+      {
+        "position": 6,
+        "title": "Right Here in My Arms",
+        "lengthMs": 239906,
+        "disc": 1
+      },
+      {
+        "position": 7,
+        "title": "The Funeral of Hearts",
+        "lengthMs": 268626,
+        "disc": 1
+      },
+      {
+        "position": 8,
+        "title": "In Joy and Sorrow",
+        "lengthMs": 238840,
+        "disc": 1
+      },
+      {
+        "position": 9,
+        "title": "Your Sweet 666",
+        "lengthMs": 237360,
+        "disc": 1
+      },
+      {
+        "position": 10,
+        "title": "Gone With the Sin",
+        "lengthMs": 261706,
+        "disc": 1
+      },
+      {
+        "position": 11,
+        "title": "Wicked Game",
+        "lengthMs": 245733,
+        "disc": 1
+      },
+      {
+        "position": 12,
+        "title": "The Sacrament",
+        "lengthMs": 270920,
+        "disc": 1
+      },
+      {
+        "position": 13,
+        "title": "Close to the Flame",
+        "lengthMs": 226560,
+        "disc": 1
+      },
+      {
+        "position": 14,
+        "title": "It’s All Tears (Drown in This Love)",
+        "lengthMs": 270173,
+        "disc": 1
+      },
+      {
+        "position": 15,
+        "title": "Poison Girl",
+        "lengthMs": 232746,
+        "disc": 1
+      },
+      {
+        "position": 16,
+        "title": "Pretending",
+        "lengthMs": 221346,
+        "disc": 1
+      },
+      {
+        "position": 17,
+        "title": "When Love and Death Embrace",
+        "lengthMs": 370706,
+        "disc": 1
+      },
+      {
+        "position": 1,
+        "title": "Soul On Fire (live)",
+        "lengthMs": 249000,
+        "disc": 2
+      },
+      {
+        "position": 2,
+        "title": "The Funeral of Hearts (live)",
+        "lengthMs": 285000,
+        "disc": 2
+      },
+      {
+        "position": 3,
+        "title": "Beyond Redemption (live)",
+        "lengthMs": 263000,
+        "disc": 2
+      },
+      {
+        "position": 4,
+        "title": "Sweet Pandemonium (live)",
+        "lengthMs": 307000,
+        "disc": 2
+      },
+      {
+        "position": 5,
+        "title": "Buried Alive by Love (live)",
+        "lengthMs": 292000,
+        "disc": 2
+      },
+      {
+        "position": 6,
+        "title": "The Sacrament (live)",
+        "lengthMs": 271000,
+        "disc": 2
+      }
+    ],
+    "funFact": "With sticker on front case:\n\"Includes 2 brand new tracks and 2 re-recordings of 'When Love And Death Embrace' and exclusive to UK 'It’s All Tears' + Live Bonus DVD\"",
+    "sourceName": "MusicBrainz",
+    "sourceUrl": "https://musicbrainz.org/release/0ac577b8-4196-477a-8f05-3981b509e723",
+    "synopsis": "",
+    "cast": [],
+    "runtimeMinutes": 0
+  },
+  {
+    "id": "opeth-still-life",
+    "type": "vinyl",
+    "title": "Still Life",
+    "artistOrDirector": "Opeth",
+    "year": 2002,
+    "label": "Peaceville",
+    "genre": "Progressive Metal",
+    "format": "2×12\" Vinyl",
+    "coverImageUrl": "https://coverartarchive.org/release/545448a8-2969-3faf-b232-c0d3114a4e16/35852565518-500.jpg",
+    "backgroundImageUrl": "https://coverartarchive.org/release/545448a8-2969-3faf-b232-c0d3114a4e16/35852568173-500.jpg",
+    "backCoverImageUrl": "https://coverartarchive.org/release/545448a8-2969-3faf-b232-c0d3114a4e16/35852568173-500.jpg",
+    "discImageUrl": "",
+    "dominantColor": "",
+    "tags": [
+      "Death Metal",
+      "Progressive Death Metal",
+      "Rock",
+      "Progressive Melodic Death Metal",
+      "Heavy Metal",
+      "Symphonic Black Metal"
+    ],
+    "rating": 0,
+    "notes": "",
+    "conditionOrEdition": "",
+    "dateAcquired": "",
+    "wishlist": false,
+    "shelfId": null,
+    "position": 0,
+    "musicbrainzId": "545448a8-2969-3faf-b232-c0d3114a4e16",
+    "tmdbId": "",
+    "barcode": "801056607812",
+    "catalogNumber": "DLPVILE 78",
+    "country": "GB",
+    "trackList": [
+      {
+        "position": 1,
+        "title": "The Moor",
+        "lengthMs": 688000,
+        "disc": 1
+      },
+      {
+        "position": 2,
+        "title": "Godhead’s Lament",
+        "lengthMs": 587000,
+        "disc": 1
+      },
+      {
+        "position": 3,
+        "title": "Benighted",
+        "lengthMs": 301000,
+        "disc": 1
+      },
+      {
+        "position": 1,
+        "title": "Moonlapse Vertigo",
+        "lengthMs": 540000,
+        "disc": 2
+      },
+      {
+        "position": 2,
+        "title": "Face of Melinda",
+        "lengthMs": 479000,
+        "disc": 2
+      },
+      {
+        "position": 3,
+        "title": "Serenity Painted Death",
+        "lengthMs": 554000,
+        "disc": 2
+      },
+      {
+        "position": 4,
+        "title": "White Cluster",
+        "lengthMs": 602000,
+        "disc": 2
+      }
+    ],
+    "funFact": "",
+    "sourceName": "MusicBrainz",
+    "sourceUrl": "https://musicbrainz.org/release/545448a8-2969-3faf-b232-c0d3114a4e16",
+    "synopsis": "",
+    "cast": [],
+    "runtimeMinutes": 0
+  },
+  {
+    "id": "opeth-blackwater-park",
+    "type": "vinyl",
+    "title": "Blackwater Park",
+    "artistOrDirector": "Opeth",
+    "year": 2008,
+    "label": "KOCH Records",
+    "genre": "Progressive Metal",
+    "format": "2×12\" Vinyl",
+    "coverImageUrl": "https://coverartarchive.org/release/6b2e55b2-eec7-31d9-975d-2a8c5e4fe118/35852619149-500.jpg",
+    "backgroundImageUrl": "https://coverartarchive.org/release/6b2e55b2-eec7-31d9-975d-2a8c5e4fe118/35852621981-500.jpg",
+    "backCoverImageUrl": "https://coverartarchive.org/release/6b2e55b2-eec7-31d9-975d-2a8c5e4fe118/35852621981-500.jpg",
+    "discImageUrl": "",
+    "dominantColor": "",
+    "tags": [
+      "Death Metal",
+      "Progressive Death Metal",
+      "Metal",
+      "00s",
+      "Opeth",
+      "Scandinavian Metal"
+    ],
+    "rating": 0,
+    "notes": "",
+    "conditionOrEdition": "",
+    "dateAcquired": "",
+    "wishlist": false,
+    "shelfId": null,
+    "position": 0,
+    "musicbrainzId": "6b2e55b2-eec7-31d9-975d-2a8c5e4fe118",
+    "tmdbId": "",
+    "barcode": "099923457411",
+    "catalogNumber": "KOC-LP-4574",
+    "country": "US",
+    "trackList": [
+      {
+        "position": 1,
+        "title": "The Leper Affinity",
+        "lengthMs": 625000,
+        "disc": 1
+      },
+      {
+        "position": 2,
+        "title": "Bleak",
+        "lengthMs": 555933,
+        "disc": 1
+      },
+      {
+        "position": 3,
+        "title": "Harvest",
+        "lengthMs": 359000,
+        "disc": 1
+      },
+      {
+        "position": 4,
+        "title": "The Drapery Falls",
+        "lengthMs": 652000,
+        "disc": 1
+      },
+      {
+        "position": 1,
+        "title": "Dirge for November",
+        "lengthMs": 473000,
+        "disc": 2
+      },
+      {
+        "position": 2,
+        "title": "The Funeral Portrait",
+        "lengthMs": 522000,
+        "disc": 2
+      },
+      {
+        "position": 3,
+        "title": "Patterns in the Ivy",
+        "lengthMs": 110000,
+        "disc": 2
+      },
+      {
+        "position": 4,
+        "title": "Blackwater Park",
+        "lengthMs": 728333,
+        "disc": 2
+      }
+    ],
+    "funFact": "",
+    "sourceName": "MusicBrainz",
+    "sourceUrl": "https://musicbrainz.org/release/6b2e55b2-eec7-31d9-975d-2a8c5e4fe118",
+    "synopsis": "",
+    "cast": [],
+    "runtimeMinutes": 0
+  },
+  {
+    "id": "opeth-deliverance",
+    "type": "vinyl",
+    "title": "Deliverance",
+    "artistOrDirector": "Opeth",
+    "year": 2008,
+    "label": "KOCH Records",
+    "genre": "Progressive Metal",
+    "format": "2×12\" Vinyl",
+    "coverImageUrl": "https://coverartarchive.org/release/a7faecdb-2a0d-36ea-9195-3c34dcc0531b/35852630032-500.jpg",
+    "backgroundImageUrl": "https://coverartarchive.org/release/a7faecdb-2a0d-36ea-9195-3c34dcc0531b/35852632221-500.jpg",
+    "backCoverImageUrl": "https://coverartarchive.org/release/a7faecdb-2a0d-36ea-9195-3c34dcc0531b/35852632221-500.jpg",
+    "discImageUrl": "",
+    "dominantColor": "",
+    "tags": [
+      "Death Metal",
+      "Progressive Death Metal"
+    ],
+    "rating": 0,
+    "notes": "",
+    "conditionOrEdition": "",
+    "dateAcquired": "",
+    "wishlist": false,
+    "shelfId": null,
+    "position": 0,
+    "musicbrainzId": "a7faecdb-2a0d-36ea-9195-3c34dcc0531b",
+    "tmdbId": "",
+    "barcode": "099923457619",
+    "catalogNumber": "KOC-LP-4576",
+    "country": "US",
+    "trackList": [
+      {
+        "position": 1,
+        "title": "Wreath",
+        "lengthMs": 670000,
+        "disc": 1
+      },
+      {
+        "position": 2,
+        "title": "Deliverance",
+        "lengthMs": 816000,
+        "disc": 1
+      },
+      {
+        "position": 1,
+        "title": "A Fair Judgement",
+        "lengthMs": 624000,
+        "disc": 2
+      },
+      {
+        "position": 2,
+        "title": "For Absent Friends",
+        "lengthMs": 137000,
+        "disc": 2
+      },
+      {
+        "position": 3,
+        "title": "Master's Apprentices",
+        "lengthMs": 632000,
+        "disc": 2
+      },
+      {
+        "position": 4,
+        "title": "By the Pain I See in Others",
+        "lengthMs": 830000,
+        "disc": 2
+      }
+    ],
+    "funFact": "Recorded at Nacksving Studios & Studio Fredman, Göteborg, Sweden. July/September 2002\r\nMixed at Backstage Studios, Ripley, UK.\r\n\r\n88697161722 is the barcode for a compilation package, containing 'Blackwater Park' and 'Deliverance'. The individual CD barcode numbers are currently unknown.",
+    "sourceName": "MusicBrainz",
+    "sourceUrl": "https://musicbrainz.org/release/a7faecdb-2a0d-36ea-9195-3c34dcc0531b",
+    "synopsis": "",
+    "cast": [],
+    "runtimeMinutes": 0
+  },
+  {
+    "id": "opeth-heritage",
+    "type": "vinyl",
+    "title": "Heritage",
+    "artistOrDirector": "Opeth",
+    "year": 2011,
+    "label": "Roadrunner Records",
+    "genre": "Progressive Metal",
+    "format": "2×12\" Vinyl",
+    "coverImageUrl": "https://coverartarchive.org/release/557e5591-26fe-4dac-b631-3ab52263a70f/22504092348-500.jpg",
+    "backgroundImageUrl": "https://coverartarchive.org/release/557e5591-26fe-4dac-b631-3ab52263a70f/22504091609-500.jpg",
+    "backCoverImageUrl": "https://coverartarchive.org/release/557e5591-26fe-4dac-b631-3ab52263a70f/22504091609-500.jpg",
+    "discImageUrl": "https://coverartarchive.org/release/557e5591-26fe-4dac-b631-3ab52263a70f/22504087546-500.jpg",
+    "dominantColor": "",
+    "tags": [
+      "Progressive Rock",
+      "Heavy Metal",
+      "Rock"
+    ],
+    "rating": 0,
+    "notes": "",
+    "conditionOrEdition": "",
+    "dateAcquired": "",
+    "wishlist": false,
+    "shelfId": null,
+    "position": 0,
+    "musicbrainzId": "557e5591-26fe-4dac-b631-3ab52263a70f",
+    "tmdbId": "",
+    "barcode": "016861770518",
+    "catalogNumber": "1686-177051",
+    "country": "US",
+    "trackList": [
+      {
+        "position": 1,
+        "title": "Heritage",
+        "lengthMs": 123000,
+        "disc": 1
+      },
+      {
+        "position": 2,
+        "title": "The Devil's Orchard",
+        "lengthMs": 404000,
+        "disc": 1
+      },
+      {
+        "position": 3,
+        "title": "I Feel the Dark",
+        "lengthMs": 398000,
+        "disc": 1
+      },
+      {
+        "position": 4,
+        "title": "Slither",
+        "lengthMs": 241000,
+        "disc": 1
+      },
+      {
+        "position": 5,
+        "title": "Nepenthe",
+        "lengthMs": 339000,
+        "disc": 1
+      },
+      {
+        "position": 6,
+        "title": "Häxprocess",
+        "lengthMs": 419000,
+        "disc": 1
+      },
+      {
+        "position": 1,
+        "title": "Famine",
+        "lengthMs": 514000,
+        "disc": 2
+      },
+      {
+        "position": 2,
+        "title": "The Lines in My Hand",
+        "lengthMs": 233000,
+        "disc": 2
+      },
+      {
+        "position": 3,
+        "title": "Folklore",
+        "lengthMs": 499000,
+        "disc": 2
+      },
+      {
+        "position": 4,
+        "title": "Marrow of the Earth",
+        "lengthMs": 261000,
+        "disc": 2
+      }
+    ],
+    "funFact": "Heritage is the tenth studio album by Swedish progressive metal band Opeth, released on 13 September 2011 by Roadrunner Records. Heritage features no death growls, which have been present on every Opeth album except Damnation.\r\n\r\nThe album was recorded in early 2011 at Atlantis studios in Stockholm, Sweden. It was produced by Mikael Åkerfeldt, engineered by Jens Bogren and mixed by Steven Wilson. […]",
+    "sourceName": "MusicBrainz",
+    "sourceUrl": "https://musicbrainz.org/release/557e5591-26fe-4dac-b631-3ab52263a70f",
+    "synopsis": "",
+    "cast": [],
+    "runtimeMinutes": 0
+  },
+  {
+    "id": "opeth-ghost-reveries",
+    "type": "vinyl",
+    "title": "Ghost Reveries",
+    "artistOrDirector": "Opeth",
+    "year": 2013,
+    "label": "Cargo Records",
+    "genre": "Progressive Metal",
+    "format": "2×12\" Vinyl",
+    "coverImageUrl": "https://coverartarchive.org/release/24cc5e62-ad7a-49ea-8c07-6d5eebba3ede/38344135557-500.jpg",
+    "backgroundImageUrl": "https://coverartarchive.org/release/24cc5e62-ad7a-49ea-8c07-6d5eebba3ede/38344152802-500.jpg",
+    "backCoverImageUrl": "https://coverartarchive.org/release/24cc5e62-ad7a-49ea-8c07-6d5eebba3ede/38344152802-500.jpg",
+    "discImageUrl": "https://coverartarchive.org/release/24cc5e62-ad7a-49ea-8c07-6d5eebba3ede/38344240314-500.jpg",
+    "dominantColor": "",
+    "tags": [
+      "Death Metal",
+      "Progressive Death Metal",
+      "Metal",
+      "Progressive Rock",
+      "Rock",
+      "Melodic Death Metal"
+    ],
+    "rating": 0,
+    "notes": "",
+    "conditionOrEdition": "",
+    "dateAcquired": "",
+    "wishlist": false,
+    "shelfId": null,
+    "position": 0,
+    "musicbrainzId": "24cc5e62-ad7a-49ea-8c07-6d5eebba3ede",
+    "tmdbId": "",
+    "barcode": "4024572638467",
+    "catalogNumber": "63846",
+    "country": "DE",
+    "trackList": [
+      {
+        "position": 1,
+        "title": "Ghost of Perdition",
+        "lengthMs": 629480,
+        "disc": 1
+      },
+      {
+        "position": 2,
+        "title": "The Baying of the Hounds",
+        "lengthMs": 641280,
+        "disc": 1
+      },
+      {
+        "position": 3,
+        "title": "Beneath the Mire",
+        "lengthMs": 477493,
+        "disc": 1
+      },
+      {
+        "position": 4,
+        "title": "Atonement / Reverie",
+        "lengthMs": 388080,
+        "disc": 1
+      },
+      {
+        "position": 1,
+        "title": "Harlequin Forest",
+        "lengthMs": 699466,
+        "disc": 2
+      },
+      {
+        "position": 2,
+        "title": "Hours of Wealth",
+        "lengthMs": 320453,
+        "disc": 2
+      },
+      {
+        "position": 3,
+        "title": "The Grand Conjuration",
+        "lengthMs": 621320,
+        "disc": 2
+      },
+      {
+        "position": 4,
+        "title": "Isolation Years",
+        "lengthMs": 231426,
+        "disc": 2
+      }
+    ],
+    "funFact": "Ghost Reveries, an observation by Opeth\nwas recorded at Fascination Street Studios, Örebro, between March 15 and June 1, 2005.\n\n\"Reverie\", an instrumental part with a duration of 1:06 mins, is the pregap-track between \"Atonement\" and \"Harlequin Forest\". Actual track duration of the song \"Atonement\" is about 5:22 mins.\n\nLimited to 300 copies on brown vinyl.",
+    "sourceName": "MusicBrainz",
+    "sourceUrl": "https://musicbrainz.org/release/24cc5e62-ad7a-49ea-8c07-6d5eebba3ede",
+    "synopsis": "",
+    "cast": [],
+    "runtimeMinutes": 0
+  },
+  {
+    "id": "opeth-watershed",
+    "type": "vinyl",
+    "title": "Watershed",
+    "artistOrDirector": "Opeth",
+    "year": 2014,
+    "label": "Roadrunner Records",
+    "genre": "Progressive Metal",
+    "format": "2×12\" Vinyl",
+    "coverImageUrl": "https://coverartarchive.org/release/eed810a6-8266-4009-879d-cb3dd7c875a9/27886281233-500.jpg",
+    "backgroundImageUrl": "https://coverartarchive.org/release/eed810a6-8266-4009-879d-cb3dd7c875a9/27886281233-500.jpg",
+    "backCoverImageUrl": "",
+    "discImageUrl": "",
+    "dominantColor": "",
+    "tags": [
+      "Death Metal",
+      "Avant-Garde Metal",
+      "Metal",
+      "Acoustic",
+      "Progressive Death Metal"
+    ],
+    "rating": 0,
+    "notes": "",
+    "conditionOrEdition": "",
+    "dateAcquired": "",
+    "wishlist": false,
+    "shelfId": null,
+    "position": 0,
+    "musicbrainzId": "eed810a6-8266-4009-879d-cb3dd7c875a9",
+    "tmdbId": "",
+    "barcode": "016861796242",
+    "catalogNumber": "1686-179624",
+    "country": "US",
+    "trackList": [
+      {
+        "position": 1,
+        "title": "Coil",
+        "lengthMs": 191000,
+        "disc": 1
+      },
+      {
+        "position": 2,
+        "title": "Heir Apparent",
+        "lengthMs": 530000,
+        "disc": 1
+      },
+      {
+        "position": 3,
+        "title": "The Lotus Eater",
+        "lengthMs": 531000,
+        "disc": 1
+      },
+      {
+        "position": 4,
+        "title": "Burden",
+        "lengthMs": 461000,
+        "disc": 1
+      },
+      {
+        "position": 1,
+        "title": "Porcelain Heart",
+        "lengthMs": 481000,
+        "disc": 2
+      },
+      {
+        "position": 2,
+        "title": "Hessian Peel",
+        "lengthMs": 686000,
+        "disc": 2
+      },
+      {
+        "position": 3,
+        "title": "Hex Omega",
+        "lengthMs": 421000,
+        "disc": 2
+      },
+      {
+        "position": 4,
+        "title": "Derelict Herds",
+        "lengthMs": 382000,
+        "disc": 2
+      }
+    ],
+    "funFact": "Limited Edition Double LP Set on green marbled vinyl\nLimited to 2700 pressings worldwide.",
+    "sourceName": "MusicBrainz",
+    "sourceUrl": "https://musicbrainz.org/release/eed810a6-8266-4009-879d-cb3dd7c875a9",
+    "synopsis": "",
+    "cast": [],
+    "runtimeMinutes": 0
+  },
+  {
+    "id": "psychonaut-4-of-mourning",
+    "type": "vinyl",
+    "title": "...Of Mourning",
+    "artistOrDirector": "Psychonaut 4",
+    "year": 2024,
+    "label": "Immortal Frost Productions",
+    "genre": "",
+    "format": "Digital Media",
+    "coverImageUrl": "https://coverartarchive.org/release/63d0c848-a681-4d85-a2a7-4572a4ab8429/40468289336-500.jpg",
+    "backgroundImageUrl": "https://coverartarchive.org/release/63d0c848-a681-4d85-a2a7-4572a4ab8429/40468289336-500.jpg",
+    "backCoverImageUrl": "",
+    "discImageUrl": "",
+    "dominantColor": "",
     "tags": [],
     "rating": 0,
     "notes": "",
     "conditionOrEdition": "",
     "dateAcquired": "",
     "wishlist": false,
-    "musicbrainzId": "a98c1d5d-263d-43e6-8926-7d06def614ba",
-    "barcode": "016861910020",
-    "catalogNumber": "RR 9100-2",
-    "country": "US",
+    "shelfId": null,
+    "position": 0,
+    "musicbrainzId": "63d0c848-a681-4d85-a2a7-4572a4ab8429",
+    "tmdbId": "",
+    "barcode": "8447181646313",
+    "catalogNumber": "",
+    "country": "XW",
     "trackList": [
       {
         "position": 1,
-        "title": "Machine Screw",
-        "lengthMs": 40826
+        "title": "Ghele",
+        "lengthMs": 100000,
+        "disc": 1
       },
       {
         "position": 2,
-        "title": "Christian Woman",
-        "lengthMs": 538133
+        "title": "Mzeo Amodi",
+        "lengthMs": 494000,
+        "disc": 1
       },
       {
         "position": 3,
-        "title": "Black No. 1 (Little Miss Scare‐All)",
-        "lengthMs": 675040
+        "title": "Fiqrebi Mtsukhrisa",
+        "lengthMs": 474000,
+        "disc": 1
       },
       {
         "position": 4,
-        "title": "Fay Wray Come Out and Play",
-        "lengthMs": 63360
+        "title": "Vai Me",
+        "lengthMs": 473000,
+        "disc": 1
       },
       {
         "position": 5,
-        "title": "Kill All the White People",
-        "lengthMs": 204040
+        "title": "Sizmrebshi",
+        "lengthMs": 504000,
+        "disc": 1
       },
       {
         "position": 6,
-        "title": "Summer Breeze",
-        "lengthMs": 289293
-      },
-      {
-        "position": 7,
-        "title": "Set Me on Fire",
-        "lengthMs": 209573
-      },
-      {
-        "position": 8,
-        "title": "Dark Side of the Womb",
-        "lengthMs": 28066
-      },
-      {
-        "position": 9,
-        "title": "We Hate Everyone",
-        "lengthMs": 411200
-      },
-      {
-        "position": 10,
-        "title": "Bloody Kisses (A Death in the Family)",
-        "lengthMs": 656160
-      },
-      {
-        "position": 11,
-        "title": "3.0.I.F.",
-        "lengthMs": 126066
-      },
-      {
-        "position": 12,
-        "title": "Too Late: Frozen",
-        "lengthMs": 470773
-      },
-      {
-        "position": 13,
-        "title": "Blood & Fire",
-        "lengthMs": 332960
-      },
-      {
-        "position": 14,
-        "title": "Can’t Lose You",
-        "lengthMs": 366306
+        "title": "Dzilis Tsameba",
+        "lengthMs": 441000,
+        "disc": 1
       }
     ],
-    "backCoverImageUrl": "https://coverartarchive.org/release/a98c1d5d-263d-43e6-8926-7d06def614ba/8508494369.jpg",
+    "funFact": "Copyright: ℗ 2024 Immortal Frost Productions\nCredits from Bandcamp\n· 5th full-length album\n· All music by Psychonaut 4.\n· All lyrics by Graf, S.D. Ramirez & Drifter. “part of lyrics in ‘’Sizmrebshi’’ by Vazha-Pshavela”\n· Album exclusively produced by S.D Ramirez.\n· Album recorded, mixed and mastered by Alex at Alex Menabde home studio in 2021-2024.\n· Guest Vocals on Dzilis Tsameba by Nona Gorgaslidze. […]",
     "sourceName": "MusicBrainz",
-    "sourceUrl": "https://musicbrainz.org/release/a98c1d5d-263d-43e6-8926-7d06def614ba",
-    "discImageUrl": ""
-  },
-  {
-    "id": "8f14e45f-ceea-4d1c-9a83-000000000003",
-    "title": "Draconian Times",
-    "type": "cd",
-    "artistOrDirector": "Paradise Lost",
-    "year": 1995,
-    "label": "Relativity Records",
-    "genre": "Gothic Metal",
-    "format": "CD",
-    "coverImageUrl": "https://coverartarchive.org/release/3aa2c28d-c9c1-41be-9fa3-385bb2cbe024/31807534093-500.jpg",
-    "backgroundImageUrl": "https://coverartarchive.org/release/3aa2c28d-c9c1-41be-9fa3-385bb2cbe024/31807532147-500.jpg",
-    "tags": [
-      "Doom Metal",
-      "Gothic Rock",
-      "Heavy Metal"
-    ],
-    "rating": 0,
-    "notes": "",
-    "conditionOrEdition": "",
-    "dateAcquired": "",
-    "wishlist": false,
-    "musicbrainzId": "3aa2c28d-c9c1-41be-9fa3-385bb2cbe024",
-    "barcode": "020831149228",
-    "catalogNumber": "CRT 1537",
-    "country": "US",
-    "trackList": [
-      {
-        "position": 1,
-        "title": "Enchantment",
-        "lengthMs": 365426
-      },
-      {
-        "position": 2,
-        "title": "Hallowed Land",
-        "lengthMs": 302600
-      },
-      {
-        "position": 3,
-        "title": "The Last Time",
-        "lengthMs": 207240
-      },
-      {
-        "position": 4,
-        "title": "Forever Failure",
-        "lengthMs": 257959
-      },
-      {
-        "position": 5,
-        "title": "Once Solemn",
-        "lengthMs": 183866
-      },
-      {
-        "position": 6,
-        "title": "Shadowkings",
-        "lengthMs": 281840
-      },
-      {
-        "position": 7,
-        "title": "Elusive Cure",
-        "lengthMs": 200826
-      },
-      {
-        "position": 8,
-        "title": "Yearn for Change",
-        "lengthMs": 259506
-      },
-      {
-        "position": 9,
-        "title": "Shades of God",
-        "lengthMs": 234893
-      },
-      {
-        "position": 10,
-        "title": "Hands of Reason",
-        "lengthMs": 238173
-      },
-      {
-        "position": 11,
-        "title": "I See Your Face",
-        "lengthMs": 197093
-      },
-      {
-        "position": 12,
-        "title": "Jaded",
-        "lengthMs": 206666
-      }
-    ],
-    "backCoverImageUrl": "https://coverartarchive.org/release/3aa2c28d-c9c1-41be-9fa3-385bb2cbe024/31807532147-500.jpg",
-    "discImageUrl": "https://coverartarchive.org/release/3aa2c28d-c9c1-41be-9fa3-385bb2cbe024/31807549562-500.jpg",
-    "sourceName": "MusicBrainz",
-    "sourceUrl": "https://musicbrainz.org/release/3aa2c28d-c9c1-41be-9fa3-385bb2cbe024"
-  },
-  {
-    "id": "8f14e45f-ceea-4d1c-9a83-000000000004",
-    "title": "Turn Loose the Swans",
-    "type": "cd",
-    "artistOrDirector": "My Dying Bride",
-    "year": 1993,
-    "label": "Peaceville",
-    "genre": "Doom Metal",
-    "format": "CD",
-    "coverImageUrl": "https://coverartarchive.org/release/48116665-87cd-3739-8fc1-9c35c3ea8e98/7722107855.jpg",
-    "backgroundImageUrl": "https://coverartarchive.org/release/48116665-87cd-3739-8fc1-9c35c3ea8e98/7722109743.jpg",
-    "tags": [
-      "Death Metal",
-      "Death-Doom Metal",
-      "Metal",
-      "Heavy Metal"
-    ],
-    "rating": 0,
-    "notes": "",
-    "conditionOrEdition": "",
-    "dateAcquired": "",
-    "wishlist": false,
-    "musicbrainzId": "48116665-87cd-3739-8fc1-9c35c3ea8e98",
-    "barcode": "5020157103923",
-    "catalogNumber": "CDVILE 39",
-    "country": "GB",
-    "trackList": [
-      {
-        "position": 1,
-        "title": "Sear Me MCMXCIII",
-        "lengthMs": 444000
-      },
-      {
-        "position": 2,
-        "title": "Your River",
-        "lengthMs": 564000
-      },
-      {
-        "position": 3,
-        "title": "The Songless Bird",
-        "lengthMs": 420000
-      },
-      {
-        "position": 4,
-        "title": "The Snow in My Hand",
-        "lengthMs": 429000
-      },
-      {
-        "position": 5,
-        "title": "The Crown of Sympathy",
-        "lengthMs": 735333
-      },
-      {
-        "position": 6,
-        "title": "Turn Loose the Swans",
-        "lengthMs": 608666
-      },
-      {
-        "position": 7,
-        "title": "Black God",
-        "lengthMs": 291666
-      }
-    ],
-    "backCoverImageUrl": "https://coverartarchive.org/release/48116665-87cd-3739-8fc1-9c35c3ea8e98/7722109743.jpg",
-    "discImageUrl": "https://coverartarchive.org/release/48116665-87cd-3739-8fc1-9c35c3ea8e98/7722111077.jpg",
-    "sourceName": "MusicBrainz",
-    "sourceUrl": "https://musicbrainz.org/release/48116665-87cd-3739-8fc1-9c35c3ea8e98"
-  },
-  {
-    "id": "8f14e45f-ceea-4d1c-9a83-000000000005",
-    "title": "The Satanist",
-    "type": "cd",
-    "artistOrDirector": "Behemoth",
-    "year": 2014,
-    "label": "Victor",
-    "genre": "Black Metal",
-    "format": "2×CD",
-    "coverImageUrl": "https://coverartarchive.org/release/9cec252f-ba2b-4632-a1dc-b476e1815fff/19674467730-500.jpg",
-    "backgroundImageUrl": "https://coverartarchive.org/release/9cec252f-ba2b-4632-a1dc-b476e1815fff/19674473554-500.jpg",
-    "tags": [
-      "Blackened Death Metal",
-      "Death Metal",
-      "Atmospheric",
-      "Extreme Metal"
-    ],
-    "rating": 0,
-    "notes": "",
-    "conditionOrEdition": "",
-    "dateAcquired": "",
-    "wishlist": false,
-    "musicbrainzId": "9cec252f-ba2b-4632-a1dc-b476e1815fff",
-    "barcode": "4988002664924",
-    "catalogNumber": "VIZP-123",
-    "country": "JP",
-    "trackList": [
-      {
-        "position": 1,
-        "title": "Blow Your Trumpets Gabriel",
-        "lengthMs": 265440
-      },
-      {
-        "position": 2,
-        "title": "Furor Divinus",
-        "lengthMs": 186613
-      },
-      {
-        "position": 3,
-        "title": "Messe Noire",
-        "lengthMs": 244826
-      },
-      {
-        "position": 4,
-        "title": "Ora pro nobis Lucifer",
-        "lengthMs": 335213
-      },
-      {
-        "position": 5,
-        "title": "Amen",
-        "lengthMs": 229160
-      },
-      {
-        "position": 6,
-        "title": "The Satanist",
-        "lengthMs": 333826
-      },
-      {
-        "position": 7,
-        "title": "Ben Sahar",
-        "lengthMs": 334986
-      },
-      {
-        "position": 8,
-        "title": "In the Absence ov Light",
-        "lengthMs": 298706
-      },
-      {
-        "position": 9,
-        "title": "O Father O Satan O Sun!",
-        "lengthMs": 433440
-      },
-      {
-        "position": 10,
-        "title": "Ludzie wschodu",
-        "lengthMs": 253226
-      },
-      {
-        "position": 11,
-        "title": "Chant for Ezkaton 2000 e.v.",
-        "lengthMs": 310826
-      },
-      {
-        "position": 12,
-        "title": "Qadosh",
-        "lengthMs": 300320
-      },
-      {
-        "position": 1,
-        "title": "Intro",
-        "lengthMs": 164000
-      },
-      {
-        "position": 2,
-        "title": "Ov Fire and the Void",
-        "lengthMs": 278000
-      },
-      {
-        "position": 3,
-        "title": "Demigod",
-        "lengthMs": 251000
-      },
-      {
-        "position": 4,
-        "title": "Moonspell Rites",
-        "lengthMs": 440000
-      },
-      {
-        "position": 5,
-        "title": "Conquer All",
-        "lengthMs": 249000
-      },
-      {
-        "position": 6,
-        "title": "Christians to the Lions",
-        "lengthMs": 305000
-      },
-      {
-        "position": 7,
-        "title": "The Seed ov I",
-        "lengthMs": 340000
-      },
-      {
-        "position": 8,
-        "title": "Alas, Lord Is Upon Me",
-        "lengthMs": 239000
-      },
-      {
-        "position": 9,
-        "title": "Decade ov Therion",
-        "lengthMs": 226000
-      },
-      {
-        "position": 10,
-        "title": "At the Left Hand ov God",
-        "lengthMs": 311000
-      },
-      {
-        "position": 11,
-        "title": "Slaves Shall Serve",
-        "lengthMs": 217000
-      },
-      {
-        "position": 12,
-        "title": "Chant for Ezkaton 2000",
-        "lengthMs": 410000
-      },
-      {
-        "position": 13,
-        "title": "23 Youth Manifesto",
-        "lengthMs": 273000
-      },
-      {
-        "position": 14,
-        "title": "Lucifer",
-        "lengthMs": 574000
-      },
-      {
-        "position": 15,
-        "title": "The Satanist: Oblivion",
-        "lengthMs": 1504000
-      }
-    ],
-    "backCoverImageUrl": "https://coverartarchive.org/release/9cec252f-ba2b-4632-a1dc-b476e1815fff/19674473554-500.jpg",
-    "discImageUrl": "https://coverartarchive.org/release/9cec252f-ba2b-4632-a1dc-b476e1815fff/19674554912-500.jpg",
-    "sourceName": "MusicBrainz",
-    "sourceUrl": "https://musicbrainz.org/release/9cec252f-ba2b-4632-a1dc-b476e1815fff"
-  },
-  {
-    "id": "8f14e45f-ceea-4d1c-9a83-000000000006",
-    "title": "Floodland",
-    "type": "vinyl",
-    "artistOrDirector": "The Sisters of Mercy",
-    "year": 1987,
-    "label": "WEA Records",
-    "genre": "Gothic Rock",
-    "format": "12\" Vinyl",
-    "coverImageUrl": "https://coverartarchive.org/release/bc061b9c-41bb-45ca-a0a9-20d7c476938d/6313878555.jpg",
-    "backgroundImageUrl": "https://coverartarchive.org/release/bc061b9c-41bb-45ca-a0a9-20d7c476938d/6313878555.jpg",
-    "tags": [
-      "Rock",
-      "Alternative",
-      "Dark Wave",
-      "Goth Rock"
-    ],
-    "rating": 0,
-    "notes": "",
-    "conditionOrEdition": "",
-    "dateAcquired": "",
-    "wishlist": false,
-    "musicbrainzId": "bc061b9c-41bb-45ca-a0a9-20d7c476938d",
-    "barcode": "022924223211",
-    "catalogNumber": "242232-1",
-    "country": "GB",
-    "trackList": [
-      {
-        "position": 1,
-        "title": "Dominion / Mother Russia",
-        "lengthMs": 422000
-      },
-      {
-        "position": 2,
-        "title": "Flood I",
-        "lengthMs": 382000
-      },
-      {
-        "position": 3,
-        "title": "Lucretia My Reflection",
-        "lengthMs": 297000
-      },
-      {
-        "position": 4,
-        "title": "1959",
-        "lengthMs": 251000
-      },
-      {
-        "position": 5,
-        "title": "This Corrosion",
-        "lengthMs": 556000
-      },
-      {
-        "position": 6,
-        "title": "Flood II",
-        "lengthMs": 379000
-      },
-      {
-        "position": 7,
-        "title": "Driven Like the Snow",
-        "lengthMs": 279000
-      },
-      {
-        "position": 8,
-        "title": "Never Land (A Fragment)",
-        "lengthMs": 176000
-      }
-    ],
-    "sourceName": "MusicBrainz",
-    "sourceUrl": "https://musicbrainz.org/release/bc061b9c-41bb-45ca-a0a9-20d7c476938d",
-    "backCoverImageUrl": "",
-    "discImageUrl": ""
-  },
-  {
-    "id": "8f14e45f-ceea-4d1c-9a83-000000000007",
-    "title": "In the Flat Field",
-    "type": "vinyl",
-    "artistOrDirector": "Bauhaus",
-    "year": 1980,
-    "label": "4AD",
-    "genre": "Gothic Rock",
-    "format": "12\" Vinyl",
-    "coverImageUrl": "https://coverartarchive.org/release/4ab8b678-e655-49ac-a89a-38e7e3d2b0b0/3447195365.jpg",
-    "backgroundImageUrl": "https://coverartarchive.org/release/4ab8b678-e655-49ac-a89a-38e7e3d2b0b0/3447216389.jpg",
-    "tags": [
-      "Goth",
-      "Rock",
-      "Goth Rock",
-      "Post-Punk"
-    ],
-    "rating": 0,
-    "notes": "",
-    "conditionOrEdition": "",
-    "dateAcquired": "",
-    "wishlist": false,
-    "musicbrainzId": "4ab8b678-e655-49ac-a89a-38e7e3d2b0b0",
-    "barcode": "",
-    "catalogNumber": "CAD 13",
-    "country": "GB",
-    "trackList": [
-      {
-        "position": 1,
-        "title": "Double Dare",
-        "lengthMs": 294000
-      },
-      {
-        "position": 2,
-        "title": "In the Flat Field",
-        "lengthMs": 299000
-      },
-      {
-        "position": 3,
-        "title": "A God in an Alcove",
-        "lengthMs": 248000
-      },
-      {
-        "position": 4,
-        "title": "Dive",
-        "lengthMs": 134000
-      },
-      {
-        "position": 5,
-        "title": "The Spy in the Cab",
-        "lengthMs": 272000
-      },
-      {
-        "position": 6,
-        "title": "Small Talk Stinks",
-        "lengthMs": 215000
-      },
-      {
-        "position": 7,
-        "title": "St. Vitus Dance",
-        "lengthMs": 212000
-      },
-      {
-        "position": 8,
-        "title": "Stigmata Martyr",
-        "lengthMs": 227000
-      },
-      {
-        "position": 9,
-        "title": "Nerves",
-        "lengthMs": 427000
-      }
-    ],
-    "backCoverImageUrl": "https://coverartarchive.org/release/4ab8b678-e655-49ac-a89a-38e7e3d2b0b0/3447216389.jpg",
-    "discImageUrl": "https://coverartarchive.org/release/4ab8b678-e655-49ac-a89a-38e7e3d2b0b0/3447225196.jpg",
-    "sourceName": "MusicBrainz",
-    "sourceUrl": "https://musicbrainz.org/release/4ab8b678-e655-49ac-a89a-38e7e3d2b0b0"
-  },
-  {
-    "id": "8f14e45f-ceea-4d1c-9a83-000000000008",
-    "title": "Nosferatu",
-    "type": "dvd",
-    "artistOrDirector": "F. W. Murnau",
-    "year": 1922,
-    "label": "Kino Lorber",
-    "genre": "Horror",
-    "format": "Restored Edition",
-    "coverImageUrl": "https://image.tmdb.org/t/p/w500/zv7J85D8CC9qYagAEhPM63CIG6j.jpg",
-    "backgroundImageUrl": "https://image.tmdb.org/t/p/w780/cA9iGtvjRGJHzDBfrq48l0eyCvA.jpg",
-    "tags": [
-      "Fantasy"
-    ],
-    "rating": 0,
-    "notes": "",
-    "conditionOrEdition": "",
-    "dateAcquired": "",
-    "wishlist": false,
-    "synopsis": "The mysterious Count Orlok summons a happily married real estate agent to his castle, located up in the Transylvanian mountains, to finalise a terrifying deal.",
-    "runtimeMinutes": 94,
-    "cast": [
-      "Max Schreck",
-      "Gustav von Wangenheim",
-      "Greta Schröder",
-      "Georg H. Schnell",
-      "Ruth Landshoff",
-      "Gustav Botz",
-      "Alexander Granach",
-      "John Gottowt"
-    ],
-    "backCoverImageUrl": "",
-    "discImageUrl": "",
-    "tmdbId": "653",
-    "sourceName": "TMDB",
-    "sourceUrl": "https://www.themoviedb.org/movie/653"
-  },
-  {
-    "id": "8f14e45f-ceea-4d1c-9a83-000000000009",
-    "title": "Bram Stoker's Dracula",
-    "type": "dvd",
-    "artistOrDirector": "Francis Ford Coppola",
-    "year": 1992,
-    "label": "Columbia Pictures",
-    "genre": "Romance",
-    "format": "Special Edition",
-    "coverImageUrl": "https://image.tmdb.org/t/p/w500/jSxCIZXudp5q8wQO8VERGX8hRAl.jpg",
-    "backgroundImageUrl": "https://image.tmdb.org/t/p/w780/88S6EYQBVyQktDfSqsB33I169jN.jpg",
-    "tags": [
-      "Horror"
-    ],
-    "rating": 0,
-    "notes": "",
-    "conditionOrEdition": "",
-    "dateAcquired": "",
-    "wishlist": false,
-    "synopsis": "Count Dracula, a 15th-century prince, is condemned to live off the blood of the living for eternity. Young lawyer Jonathan Harker is sent to Dracula's castle to finalise a land deal, but when the Count sees a photo of Harker's fiancée, Mina, the spitting image of his dead wife, he imprisons him and sets off for London to track her down.",
-    "runtimeMinutes": 128,
-    "cast": [
-      "Gary Oldman",
-      "Winona Ryder",
-      "Anthony Hopkins",
-      "Keanu Reeves",
-      "Sadie Frost",
-      "Cary Elwes",
-      "Richard E. Grant",
-      "Billy Campbell"
-    ],
-    "backCoverImageUrl": "",
-    "discImageUrl": "",
-    "tmdbId": "6114",
-    "sourceName": "TMDB",
-    "sourceUrl": "https://www.themoviedb.org/movie/6114"
-  },
-  {
-    "id": "8f14e45f-ceea-4d1c-9a83-00000000000a",
-    "title": "Within the Realm of a Dying Sun",
-    "type": "vinyl",
-    "artistOrDirector": "Dead Can Dance",
-    "year": 1987,
-    "label": "4AD",
-    "genre": "Dark Ambient",
-    "format": "12\" Vinyl",
-    "coverImageUrl": "https://coverartarchive.org/release/e99aeaba-98cd-3ce4-b6c1-e885d0dc1bf1/27155444551-500.jpg",
-    "backgroundImageUrl": "https://coverartarchive.org/release/e99aeaba-98cd-3ce4-b6c1-e885d0dc1bf1/27155444551-500.jpg",
-    "tags": [
-      "Electronic",
-      "Neoclassical Dark Wave",
-      "Modern Classical",
-      "Alternative"
-    ],
-    "rating": 0,
-    "notes": "",
-    "conditionOrEdition": "",
-    "dateAcquired": "",
-    "wishlist": true,
-    "musicbrainzId": "e99aeaba-98cd-3ce4-b6c1-e885d0dc1bf1",
-    "barcode": "",
-    "catalogNumber": "CAD 705",
-    "country": "GB",
-    "trackList": [
-      {
-        "position": 1,
-        "title": "Anywhere Out of the World",
-        "lengthMs": 309973
-      },
-      {
-        "position": 2,
-        "title": "Windfall",
-        "lengthMs": 212200
-      },
-      {
-        "position": 3,
-        "title": "In the Wake of Adversity",
-        "lengthMs": 256506
-      },
-      {
-        "position": 4,
-        "title": "Xavier",
-        "lengthMs": 378026
-      },
-      {
-        "position": 5,
-        "title": "Dawn of the Iconoclast",
-        "lengthMs": 128106
-      },
-      {
-        "position": 6,
-        "title": "Cantara",
-        "lengthMs": 360320
-      },
-      {
-        "position": 7,
-        "title": "Summoning of the Muse",
-        "lengthMs": 297600
-      },
-      {
-        "position": 8,
-        "title": "Persephone (The Gathering of Flowers)",
-        "lengthMs": 396426
-      }
-    ],
-    "sourceName": "MusicBrainz",
-    "sourceUrl": "https://musicbrainz.org/release/e99aeaba-98cd-3ce4-b6c1-e885d0dc1bf1",
-    "backCoverImageUrl": "",
-    "discImageUrl": ""
+    "sourceUrl": "https://musicbrainz.org/release/63d0c848-a681-4d85-a2a7-4572a4ab8429",
+    "synopsis": "",
+    "cast": [],
+    "runtimeMinutes": 0
   }
 ]

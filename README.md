@@ -35,7 +35,7 @@ npm run dev            # http://localhost:5173
 | `npm test` | Unit tests |
 | `npm run lint` | Lint |
 | `node scripts/verify.mjs` | Drives a real browser over every page and reports errors |
-| `node scripts/enrich-collection.mjs` | Backfills the seed data from MusicBrainz |
+| `node scripts/build-collection.mjs` | Rebuilds the bundled collection from MusicBrainz |
 
 ## Where the collection is stored
 
@@ -64,12 +64,25 @@ the repo will not break the deployed asset paths.
 
 | Source | Setup | Provides |
 |---|---|---|
-| [MusicBrainz](https://musicbrainz.org) | none | Pressing, label, year, country, barcode, catalogue number, tracklist |
+| [MusicBrainz](https://musicbrainz.org) | none | Pressing, label, year, country, barcode, catalogue number, tracklist, genre and tags, and the editor's annotation where there is one |
 | [Cover Art Archive](https://coverartarchive.org) | none | Front cover, back cover, disc face |
-| [TMDB](https://themoviedb.org) | API key | Film posters and synopses — not yet wired up |
+| [TMDB](https://themoviedb.org) | API key | Film posters, synopsis, director, cast, runtime |
 
 MusicBrainz distinguishes individual *pressings*, not just albums, which is the
 distinction that matters when you are holding one particular copy.
+
+**Film lookup needs a TMDB key at build time, and the deployed site gets it
+from a repository secret.** Vite inlines `VITE_*` variables when the bundle is
+built, and the deploy builds in CI rather than on anyone's machine — so a key
+in a local `.env.local` reaches development only. To make film search work on
+the published site, add `VITE_TMDB_KEY` under *Settings → Secrets and variables
+→ Actions*; the workflow already passes it through. Without it, film search
+simply does not appear and nothing else is affected.
+
+Every lookup in the app — the search on the Add page, a barcode scan, and the
+autofill on the manual entry form — goes through `src/services/enrichment.ts`,
+so all three return the same depth of detail rather than one being thinner
+than the others.
 
 Two things worth knowing if you touch this code:
 

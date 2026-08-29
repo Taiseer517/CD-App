@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { safeImageUrl } from '../../data/safeUrl'
 import type { CollectionItem } from '../../data/schema'
@@ -13,6 +14,13 @@ interface ShelfAlcoveProps {
   index: number
   /** The wall wears the same room as the shelves behind it. */
   theme: ShelfTheme
+  /** Absent for Unfiled, which is a gathering place rather than a shelf. */
+  id?: string
+  editMode?: boolean
+  onRename?: (id: string, name: string) => void | Promise<void>
+  onDelete?: (id: string) => void | Promise<void>
+  onDragStart?: () => void
+  onDrop?: () => void
 }
 
 /**
@@ -23,15 +31,51 @@ interface ShelfAlcoveProps {
  * single flat cutout reads as a sticker, while the offset between them gives
  * the wall its thickness.
  */
-export function ShelfAlcove({ to, name, count, items, index, theme }: ShelfAlcoveProps) {
+export function ShelfAlcove({
+  to,
+  name,
+  count,
+  items,
+  index,
+  theme,
+  id,
+  editMode = false,
+  onRename,
+  onDelete,
+  onDragStart,
+  onDrop,
+}: ShelfAlcoveProps) {
   const standing = items.slice(0, 5)
   const glow = items.find((item) => item.dominantColor)?.dominantColor ?? theme.candleColor
 
+  const [renaming, setRenaming] = useState(false)
+  const [draft, setDraft] = useState(name)
+
+  // Unfiled has no id, and nothing about it can be renamed or taken down.
+  const editable = editMode && Boolean(id)
+
+  async function commitRename() {
+    const next = draft.trim()
+    setRenaming(false)
+    if (!id || !next || next === name) return
+    await onRename?.(id, next)
+  }
+
   return (
     <motion.div
+      className="relative"
       initial={{ opacity: 0, y: 26 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.06, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+      onDragOver={editable ? (event) => event.preventDefault() : undefined}
+      onDrop={
+        editable
+          ? (event) => {
+              event.preventDefault()
+              onDrop?.()
+            }
+          : undefined
+      }
     >
       <Link to={to} className="group block focus:outline-none" aria-label={`Open the ${name} shelf`}>
         {/* Outer stone surround */}
@@ -148,6 +192,67 @@ export function ShelfAlcove({ to, name, count, items, index, theme }: ShelfAlcov
           {count} {count === 1 ? 'record' : 'records'}
         </p>
       </Link>
+
+      {/* Kept outside the Link rather than inside it: a button nested in an
+          anchor is both invalid and unpredictable, and the tile has to stay an
+          ordinary link the rest of the time. */}
+      {editable && (
+        <>
+          <span
+            draggable
+            onDragStart={onDragStart}
+            title="Drag to move this shelf"
+            aria-hidden="true"
+            className="absolute left-1 top-1 z-30 cursor-grab rounded border border-void-700 bg-void-950/85 px-1.5 py-0.5 text-xs leading-none text-bone-300 active:cursor-grabbing"
+          >
+            ⠿
+          </span>
+
+          <div className="absolute right-1 top-1 z-30 flex gap-1">
+            <button
+              type="button"
+              onClick={() => {
+                setDraft(name)
+                setRenaming(true)
+              }}
+              title={`Rename the ${name} shelf`}
+              className="rounded border border-void-700 bg-void-950/85 px-1.5 py-0.5 text-xs leading-none text-bone-300 transition-colors hover:border-velvet-400 hover:text-bone-100"
+            >
+              ✎<span className="sr-only">Rename {name}</span>
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                if (!id) return
+                if (!window.confirm(`Take down the "${name}" shelf? Its records move to Unfiled.`)) return
+                await onDelete?.(id)
+              }}
+              title={`Take down the ${name} shelf`}
+              className="rounded border border-void-700 bg-void-950/85 px-1.5 py-0.5 text-xs leading-none text-bone-300 transition-colors hover:border-blood-400 hover:text-blood-300"
+            >
+              ✕<span className="sr-only">Take down {name}</span>
+            </button>
+          </div>
+        </>
+      )}
+
+      {renaming && (
+        <div className="absolute inset-x-[6%] bottom-8 z-40">
+          {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
+          <input
+            autoFocus
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            onBlur={commitRename}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') void commitRename()
+              if (event.key === 'Escape') setRenaming(false)
+            }}
+            aria-label={`Rename the ${name} shelf`}
+            className="w-full rounded border border-velvet-400 bg-void-950 px-2 py-1 text-center text-sm text-bone-100 focus:outline-none"
+          />
+        </div>
+      )}
     </motion.div>
   )
 }

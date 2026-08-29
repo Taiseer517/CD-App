@@ -141,6 +141,17 @@ export function CaseDetailPanel({ item, onClose, shelfName, total }: CaseDetailP
               <p className="text-sm leading-relaxed text-bone-300">{item.synopsis}</p>
             )}
 
+            {item.funFact && (
+              <div className="border-l-2 border-velvet-700 pl-3">
+                <p className="text-[0.62rem] uppercase tracking-[0.18em] text-velvet-300">
+                  Worth knowing
+                </p>
+                <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-bone-300">
+                  {item.funFact}
+                </p>
+              </div>
+            )}
+
             {(item.conditionOrEdition || item.dateAcquired) && (
               <div>
                 <p className="font-display text-[0.62rem] uppercase tracking-[0.18em] text-velvet-300">

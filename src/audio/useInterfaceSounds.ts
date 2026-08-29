@@ -11,8 +11,8 @@ import { archiveAudio } from './archiveAudio'
  * data-silent stays quiet — the sound toggle itself, for instance, which
  * would otherwise click at you on the way to being switched off.
  *
- * Every sound is a no-op unless the ambience is running, so one switch
- * governs the lot rather than leaving stray noises behind.
+ * Every sound is a no-op until sound is armed, so one switch governs the lot
+ * rather than leaving stray noises behind.
  */
 export function useInterfaceSounds() {
   const location = useLocation()

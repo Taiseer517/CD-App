@@ -67,11 +67,28 @@ const alcoves = await page.evaluate(() => document.querySelectorAll('a[aria-labe
 check('the wall shows an alcove per shelf', alcoves >= 3, `${alcoves} alcoves`)
 
 console.log('\nThe shelf')
-// Step into the first shelf on the wall, the way anyone would.
-await page.goto(BASE + '#/shelf', { waitUntil: 'load' })
-await page.waitForTimeout(2500)
-await page.locator('a[aria-label^="Open the"]').first().click()
-await page.waitForTimeout(3000)
+
+/**
+ * Steps into a shelf that actually holds something, the way anyone would.
+ *
+ * Taking the first alcove on the wall assumed the first shelf was never
+ * empty, which stopped being true the moment the collection was all on one
+ * medium — the run then reported an empty rack as a broken one.
+ */
+async function openAStockedShelf() {
+  await page.goto(BASE + '#/shelf', { waitUntil: 'load' })
+  await page.waitForTimeout(2500)
+
+  const alcoves = page.locator('a[aria-label^="Open the"]')
+  const counts = await alcoves.evaluateAll((nodes) =>
+    nodes.map((node) => Number.parseInt(node.innerText.match(/(\d+)\s+records?/)?.[1] ?? '0', 10)),
+  )
+  const fullest = counts.indexOf(Math.max(...counts))
+  await alcoves.nth(fullest === -1 ? 0 : fullest).click()
+  await page.waitForTimeout(3000)
+}
+
+await openAStockedShelf()
 
 // The case is drawn, not modelled: there is deliberately no canvas here.
 // Only the disc viewer is 3D.
@@ -110,7 +127,11 @@ for (const name of ['Cathedral', 'Crypt']) {
   await page.waitForTimeout(1600)
   await page.locator(`button:has-text("${name}")`).first().click()
   await page.waitForTimeout(500)
-  await page.locator('a[aria-label^="Open the"]').first().click()
+  const themeAlcoves = page.locator('a[aria-label^="Open the"]')
+  const themeCounts = await themeAlcoves.evaluateAll((nodes) =>
+    nodes.map((node) => Number.parseInt(node.innerText.match(/(\d+)\s+records?/)?.[1] ?? '0', 10)),
+  )
+  await themeAlcoves.nth(Math.max(0, themeCounts.indexOf(Math.max(...themeCounts)))).click()
   await page.waitForTimeout(2500)
   themeShots.push((await page.locator('[role="group"]').first().screenshot()).toString('base64').slice(0, 4000))
 }
@@ -143,12 +164,77 @@ const beforeSound = await audioPage.evaluate(() => window.__audio)
 check('nothing opens an audio context before it is asked to', beforeSound.contexts === 0)
 
 await audioPage.locator('nav button[aria-pressed]').click()
+await audioPage.waitForTimeout(1500)
+const armed = await audioPage.evaluate(() => window.__audio)
+check('the toggle arms the sound', armed.contexts === 1)
+
+// Nothing plays on its own any more. Left alone, the count must not move:
+// a rising oscillator count with nobody touching anything is exactly the
+// background music that was asked to go.
+const idleBefore = (await audioPage.evaluate(() => window.__audio)).oscillators
 await audioPage.waitForTimeout(9000)
-const afterSound = await audioPage.evaluate(() => window.__audio)
-check('the toggle starts the ambience', afterSound.contexts === 1)
-// Three of the voices are the drone; anything beyond that is a bell struck.
-check('bells are ringing, not just a drone', afterSound.oscillators > 3, `${afterSound.oscillators} voices`)
+const idleAfter = await audioPage.evaluate(() => window.__audio)
+check(
+  'nothing plays on its own once armed',
+  idleAfter.oscillators === idleBefore,
+  `${idleBefore} → ${idleAfter.oscillators} voices while idle`,
+)
+
+// The effects used to be gated behind the ambience loop, so removing the
+// loop would have silenced them too. Clicking must still make a sound.
+await audioPage.locator('a[aria-label^="Open the"]').first().click()
+await audioPage.waitForTimeout(1500)
+const afterClick = await audioPage.evaluate(() => window.__audio)
+check(
+  'interaction still makes a sound with no ambience running',
+  afterClick.oscillators > idleAfter.oscillators,
+  `${idleAfter.oscillators} → ${afterClick.oscillators} voices`,
+)
 await audioPage.close()
+
+console.log('\nThe disc, held up to the light')
+await openAStockedShelf()
+await page.locator('[data-rack-item]').first().click()
+await page.waitForTimeout(1200)
+// Reads "See the record" for vinyl and "See the disc" for a CD.
+const discButton = page.locator('button:has-text("See the")').first()
+if (await discButton.count()) {
+  await discButton.click()
+  await page.waitForTimeout(2500)
+  // The overlay must cover the window, not the page it was opened from.
+  // Mounted inside a transformed ancestor it measured the page instead, and
+  // the sleeve stayed visible beside the spinning disc.
+  const covers = await page.evaluate(() => {
+    const dialog = document.querySelector('[role="dialog"][aria-modal="true"]')
+    if (!dialog) return null
+    const box = dialog.getBoundingClientRect()
+    return {
+      full:
+        Math.abs(box.width - window.innerWidth) < 2 &&
+        Math.abs(box.height - window.innerHeight) < 2 &&
+        Math.abs(box.top) < 2 &&
+        Math.abs(box.left) < 2,
+      parentIsBody: dialog.parentElement === document.body,
+    }
+  })
+  check('the disc viewer opens', covers !== null)
+  check('it covers the window rather than the page behind it', covers?.full === true)
+  check('it is mounted outside the transitioning page', covers?.parentIsBody === true)
+  await page.screenshot({ path: `${SHOTS}/disc-viewer.png` })
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(600)
+}
+
+console.log('\nShelves can be managed from the wall')
+await page.goto(BASE + '#/shelf', { waitUntil: 'load' })
+await page.waitForTimeout(2000)
+await page.locator('button:has-text("Rearrange shelves")').click()
+await page.waitForTimeout(600)
+const renameButtons = await page.locator('button[title^="Rename the"]').count()
+const deleteButtons = await page.locator('button[title^="Take down the"]').count()
+check('every shelf can be renamed from the wall', renameButtons > 0, `${renameButtons} controls`)
+check('every shelf can be taken down from the wall', deleteButtons > 0, `${deleteButtons} controls`)
+await page.screenshot({ path: `${SHOTS}/wall-arranging.png` })
 
 console.log('\nAttribution')
 const footer = await page.locator('footer').innerText()

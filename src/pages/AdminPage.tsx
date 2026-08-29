@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { PageTransition } from '../components/layout/PageTransition'
 import { RefreshPanel } from '../components/admin/RefreshPanel'
+import { ResetPanel } from '../components/admin/ResetPanel'
 import { StoragePanel } from '../components/storage/StoragePanel'
 import { useCollectionStore } from '../store/useCollectionStore'
 
@@ -21,6 +22,8 @@ export function AdminPage() {
         <RefreshPanel />
 
         <StoragePanel />
+
+        <ResetPanel />
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-bone-400">

@@ -59,33 +59,44 @@ async function ensureSeeded(): Promise<void> {
 
   const existing = await readAll<CollectionItem>(STORE_ITEMS)
   if (existing.length === 0) {
-    const items = parseItems(rawCollection as unknown[])
-
-    const shelves: Shelf[] = STARTER_SHELVES.map((definition, order) =>
-      ShelfSchema.parse({
-        id: newId(),
-        name: definition.name,
-        order,
-        accent: '',
-        kind: definition.kind,
-      }),
-    )
-    const shelfByType = new Map(STARTER_SHELVES.map((d, index) => [d.type, shelves[index].id]))
-
-    const counters = new Map<string, number>()
-    const placed = items.map((item) => {
-      const shelfId = shelfByType.get(item.type) ?? null
-      const key = shelfId ?? 'unfiled'
-      const position = counters.get(key) ?? 0
-      counters.set(key, position + 1)
-      return { ...item, shelfId, position }
-    })
-
+    const { items, shelves } = buildStarter()
     await replaceStore(STORE_SHELVES, shelves)
-    await replaceStore(STORE_ITEMS, placed)
+    await replaceStore(STORE_ITEMS, items)
   }
 
   await writeMeta(SEEDED_KEY, true)
+}
+
+/**
+ * Builds the starting arrangement: the bundled collection, filed by medium.
+ *
+ * Shared by the first-run seed and by the deliberate reset in Admin, so both
+ * produce exactly the same archive rather than drifting apart.
+ */
+function buildStarter(): { items: CollectionItem[]; shelves: Shelf[] } {
+  const items = parseItems(rawCollection as unknown[])
+
+  const shelves: Shelf[] = STARTER_SHELVES.map((definition, order) =>
+    ShelfSchema.parse({
+      id: newId(),
+      name: definition.name,
+      order,
+      accent: '',
+      kind: definition.kind,
+    }),
+  )
+  const shelfByType = new Map(STARTER_SHELVES.map((d, index) => [d.type, shelves[index].id]))
+
+  const counters = new Map<string, number>()
+  const placed = items.map((item) => {
+    const shelfId = shelfByType.get(item.type) ?? null
+    const key = shelfId ?? 'unfiled'
+    const position = counters.get(key) ?? 0
+    counters.set(key, position + 1)
+    return { ...item, shelfId, position }
+  })
+
+  return { items: placed, shelves }
 }
 
 /**
@@ -105,6 +116,27 @@ async function readItems(): Promise<CollectionItem[]> {
     else console.warn('Skipping a record that no longer fits the schema', entry, parsed.error.flatten())
   }
   return items
+}
+
+/**
+ * The same treatment for shelves, and for the same reason.
+ *
+ * A shelf read raw came back with whatever it was saved with, so one written
+ * before `kind` existed had no kind at all — and the wall, which files shelves
+ * under music or film, could match it to neither. The shelf vanished from the
+ * wall, and its records went with it: still filed, so not unfiled either, and
+ * therefore nowhere. Parsing here gives that shelf the schema's default and
+ * puts it back on the wall.
+ */
+async function readShelves(): Promise<Shelf[]> {
+  const stored = await readAll<unknown>(STORE_SHELVES)
+  const shelves: Shelf[] = []
+  for (const entry of stored) {
+    const parsed = ShelfSchema.safeParse(entry)
+    if (parsed.success) shelves.push(parsed.data)
+    else console.warn('Skipping a shelf that no longer fits the schema', entry, parsed.error.flatten())
+  }
+  return shelves
 }
 
 async function requireItem(id: string): Promise<{ items: CollectionItem[]; item: CollectionItem }> {
@@ -144,7 +176,7 @@ export const indexedDbRepository: CollectionRepository = {
   },
 
   async getShelves() {
-    const shelves = await readAll<Shelf>(STORE_SHELVES)
+    const shelves = await readShelves()
     return shelves.sort((a, b) => a.order - b.order)
   },
 
@@ -155,7 +187,7 @@ export const indexedDbRepository: CollectionRepository = {
   },
 
   async updateShelf(id, patch) {
-    const shelves = await readAll<Shelf>(STORE_SHELVES)
+    const shelves = await readShelves()
     const existing = shelves.find((shelf) => shelf.id === id)
     if (!existing) throw new Error(`Shelf not found: ${id}`)
     const updated = ShelfSchema.parse({ ...existing, ...patch, id })
@@ -190,6 +222,35 @@ export const indexedDbRepository: CollectionRepository = {
     )
   },
 
+  async saveShelfOrder(orders) {
+    if (orders.length === 0) return
+    const shelves = await readShelves()
+    const byId = new Map(orders.map((entry) => [entry.id, entry]))
+    await replaceStore(
+      STORE_SHELVES,
+      shelves.map((shelf) => {
+        const entry = byId.get(shelf.id)
+        return entry ? { ...shelf, order: entry.order } : shelf
+      }),
+    )
+  },
+
+  /**
+   * Throws the archive away and lays out the bundled collection again.
+   *
+   * The seed only ever runs on an empty, never-seeded browser, so updating
+   * the bundled data can never reach a browser already carrying an archive.
+   * This is the deliberate way to take it — destructive, and only ever from
+   * an explicit confirmation.
+   */
+  async resetToStarter() {
+    const { items, shelves } = buildStarter()
+    await replaceStore(STORE_SHELVES, shelves)
+    await replaceStore(STORE_ITEMS, items)
+    await writeMeta(SEEDED_KEY, true)
+    return { items, shelves }
+  },
+
   async replaceAll(snapshot) {
     await replaceStore(STORE_ITEMS, snapshot.items)
     await replaceStore(STORE_SHELVES, snapshot.shelves)
@@ -197,7 +258,7 @@ export const indexedDbRepository: CollectionRepository = {
   },
 
   async snapshot(): Promise<CollectionSnapshot> {
-    const [items, shelves] = await Promise.all([readItems(), readAll<Shelf>(STORE_SHELVES)])
+    const [items, shelves] = await Promise.all([readItems(), readShelves()])
     return { items, shelves: shelves.sort((a, b) => a.order - b.order) }
   },
 }

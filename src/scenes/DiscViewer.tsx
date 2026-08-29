@@ -2,6 +2,7 @@ import { animated, useSpring } from '@react-spring/three'
 import { Environment, Lightformer } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { MathUtils, type Group } from 'three'
 import { archiveAudio } from '../audio/archiveAudio'
 import type { CollectionItem } from '../data/schema'
@@ -321,7 +322,16 @@ export function DiscViewer({ item, onClose, reducedMotion }: DiscViewerProps) {
 
   const noun = item.type === 'vinyl' ? 'record' : 'disc'
 
-  return (
+  /**
+   * Rendered into the body rather than where it is called.
+   *
+   * Every page sits inside a transitioning wrapper, and a transformed ancestor
+   * becomes the containing block for anything fixed inside it — so `inset-0`
+   * was measuring the page, not the window. The disc ended up overlaying only
+   * part of the screen with the sleeve still visible beside it, which is
+   * exactly what it looked like: a bug.
+   */
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex flex-col bg-void-950/97 backdrop-blur-sm"
       role="dialog"
@@ -371,7 +381,10 @@ export function DiscViewer({ item, onClose, reducedMotion }: DiscViewerProps) {
         </button>
         <button
           type="button"
-          onClick={() => setFlipped((current) => !current)}
+          onClick={() => {
+            archiveAudio.flip()
+            setFlipped((current) => !current)
+          }}
           className="rounded-md border border-velvet-700 px-4 py-2 text-sm text-bone-100 transition-colors hover:border-velvet-400"
         >
           Turn it over
@@ -387,6 +400,7 @@ export function DiscViewer({ item, onClose, reducedMotion }: DiscViewerProps) {
           Drag to turn it · flick to keep it spinning · double-click to reset · Esc to close
         </p>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

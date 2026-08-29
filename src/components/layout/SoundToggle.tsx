@@ -3,13 +3,13 @@ import { archiveAudio } from '../../audio/archiveAudio'
 import { useUiStore } from '../../store/useUiStore'
 
 /**
- * Starts and stops the room.
+ * Arms the archive's sounds.
  *
- * Off by default and started only by this click, because browsers block audio
- * without a gesture and because sound that arrives uninvited is an intrusion.
- * The choice is remembered, but it is re-armed by a click on the next visit
- * rather than resuming on its own — a page that starts making noise on load
- * is the thing everyone hates.
+ * Nothing plays on its own — there is no music, only the sound of things being
+ * handled. Off by default and armed only by this click, because browsers block
+ * audio without a gesture and because sound that arrives uninvited is an
+ * intrusion. The choice is remembered, but it is re-armed by a click on the
+ * next visit rather than resuming on its own.
  */
 export function SoundToggle() {
   const soundOn = useUiStore((state) => state.soundOn)
@@ -17,14 +17,14 @@ export function SoundToggle() {
 
   useEffect(() => {
     return () => {
-      void archiveAudio.setAmbience('off')
+      void archiveAudio.setSoundEnabled(false)
     }
   }, [])
 
   async function toggle() {
     const next = !soundOn
     setSoundOn(next)
-    await archiveAudio.setAmbience(next ? 'on' : 'off')
+    await archiveAudio.setSoundEnabled(next)
   }
 
   return (
@@ -33,7 +33,7 @@ export function SoundToggle() {
       onClick={toggle}
       aria-pressed={soundOn}
       data-silent
-      title={soundOn ? 'Silence the room' : 'Let the room breathe'}
+      title={soundOn ? 'Turn sound off' : 'Turn sound on'}
       className={`rounded-md border px-2.5 py-1 text-sm transition-colors ${
         soundOn
           ? 'border-velvet-700 text-velvet-300'
